@@ -1,0 +1,6 @@
+{
+  "name": "Freelance Books",
+  "description": "QuickBooks-style invoicing, quotes, and client management for freelancers with auto-incrementing invoices, job invite tracking, and PDF email export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
