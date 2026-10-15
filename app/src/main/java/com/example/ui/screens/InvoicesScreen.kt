@@ -208,14 +208,27 @@ fun InvoicesScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = invoice.invoiceNumber,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        StatusBadge(status = invoice.status)
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = invoice.invoiceNumber,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp
+                                            )
+                                            Spacer(Modifier.width(8.dp))
+                                            StatusBadge(status = invoice.status)
+                                        }
+                                        if (invoice.poNumber.isNotBlank() || invoice.inviteNumber.isNotBlank()) {
+                                            Text(
+                                                text = listOfNotNull(
+                                                    if (invoice.poNumber.isNotBlank()) "PO: ${invoice.poNumber}" else null,
+                                                    if (invoice.inviteNumber.isNotBlank()) "Invite: ${invoice.inviteNumber}" else null
+                                                ).joinToString(" • "),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
 
                                     Text(

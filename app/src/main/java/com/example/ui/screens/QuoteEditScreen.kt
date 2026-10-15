@@ -107,7 +107,7 @@ fun QuoteEditScreen(
         mutableStateOf(
             if (existingQuote != null) LineItemConverter.fromJson(existingQuote.itemsJson)
             else listOf(
-                LineItem(description = "Scope of Work / Deliverables", quantity = 1.0, unitPrice = 7500.0)
+                LineItem(project = "", service = "TD/Vision Mixer", days = 1.0, dailyRate = 4500.0)
             )
         )
     }

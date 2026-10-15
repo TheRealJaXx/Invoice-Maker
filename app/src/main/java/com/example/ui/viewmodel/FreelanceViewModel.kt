@@ -270,4 +270,30 @@ class FreelanceViewModel(application: Application) : AndroidViewModel(applicatio
             repository.updateProfile(profile)
         }
     }
+
+    // Data Import & Backup Restore
+    fun importClients(newClients: List<Client>, onComplete: (Int) -> Unit) {
+        viewModelScope.launch {
+            if (newClients.isNotEmpty()) {
+                repository.insertClients(newClients)
+            }
+            onComplete(newClients.size)
+        }
+    }
+
+    fun restoreFullBackup(backupData: com.example.util.FullBackupData, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            if (backupData.clients.isNotEmpty()) {
+                repository.insertClients(backupData.clients)
+            }
+            if (backupData.invoices.isNotEmpty()) {
+                repository.insertInvoices(backupData.invoices)
+            }
+            if (backupData.quotes.isNotEmpty()) {
+                repository.insertQuotes(backupData.quotes)
+            }
+            backupData.profile?.let { repository.updateProfile(it) }
+            onComplete()
+        }
+    }
 }

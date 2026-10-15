@@ -26,6 +26,12 @@ interface InvoiceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertInvoice(invoice: Invoice): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInvoices(invoices: List<Invoice>): List<Long>
+
+    @Query("SELECT * FROM invoices")
+    suspend fun getAllInvoicesList(): List<Invoice>
+
     @Update
     suspend fun updateInvoice(invoice: Invoice)
 

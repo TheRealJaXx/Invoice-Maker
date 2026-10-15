@@ -194,14 +194,27 @@ fun QuotesScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = quote.quoteNumber,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        StatusBadge(status = quote.status)
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = quote.quoteNumber,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp
+                                            )
+                                            Spacer(Modifier.width(8.dp))
+                                            StatusBadge(status = quote.status)
+                                        }
+                                        if (quote.inviteNumber.isNotBlank() || quote.poNumber.isNotBlank()) {
+                                            Text(
+                                                text = listOfNotNull(
+                                                    if (quote.inviteNumber.isNotBlank()) "Invite: ${quote.inviteNumber}" else null,
+                                                    if (quote.poNumber.isNotBlank()) "PO: ${quote.poNumber}" else null
+                                                ).joinToString(" • "),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
 
                                     Text(

@@ -105,4 +105,60 @@ class ExampleRobolectricTest {
         assertEquals(invoice.id, updatedQuote.convertedInvoiceId)
         assertEquals(invoice.invoiceNumber, updatedQuote.convertedInvoiceNumber)
     }
+
+    @Test
+    fun separateDaysWithDifferentRatesTest() {
+        val day1 = com.example.data.model.DayRate("14 Oct 2026", 3500.0, "Rehearsal")
+        val day2 = com.example.data.model.DayRate("15 Oct 2026", 4500.0, "Live Match")
+        val item = LineItem(
+            project = "Springbok Tour",
+            service = "TD/Vision Mixer",
+            dateMode = "SEPARATE",
+            separateDays = listOf(day1, day2)
+        )
+
+        assertEquals(8000.0, item.total, 0.001)
+        assertEquals(2.0, item.quantity, 0.001)
+
+        val json = LineItemConverter.toJson(listOf(item))
+        val parsed = LineItemConverter.fromJson(json)
+        assertEquals(1, parsed.size)
+        assertEquals("Springbok Tour", parsed[0].project)
+        assertEquals("TD/Vision Mixer", parsed[0].service)
+        assertEquals("SEPARATE", parsed[0].dateMode)
+        assertEquals(2, parsed[0].separateDays.size)
+        assertEquals(3500.0, parsed[0].separateDays[0].rate, 0.001)
+        assertEquals(4500.0, parsed[0].separateDays[1].rate, 0.001)
+        assertEquals(8000.0, parsed[0].total, 0.001)
+    }
+
+    @Test
+    fun clientExportAndImportTest() {
+        val client = Client(
+            id = 1L,
+            name = "SuperSport Media",
+            company = "MultiChoice Africa",
+            email = "broadcast@multichoice.co.za",
+            phone = "+27 11 289 3000",
+            address = "Randburg Broadcasting Hub",
+            cityStateZip = "Johannesburg, 2194",
+            notes = "Net 30 terms"
+        )
+
+        // JSON Export & Import
+        val json = com.example.util.DataBackupHelper.exportClientsToJson(listOf(client))
+        val importedFromJson = com.example.util.DataBackupHelper.importClientsFromJson(json)
+        assertEquals(1, importedFromJson.size)
+        assertEquals("SuperSport Media", importedFromJson[0].name)
+        assertEquals("MultiChoice Africa", importedFromJson[0].company)
+        assertEquals("broadcast@multichoice.co.za", importedFromJson[0].email)
+
+        // CSV Export & Import
+        val csv = com.example.util.DataBackupHelper.exportClientsToCsv(listOf(client))
+        val importedFromCsv = com.example.util.DataBackupHelper.importClientsFromCsv(csv)
+        assertEquals(1, importedFromCsv.size)
+        assertEquals("SuperSport Media", importedFromCsv[0].name)
+        assertEquals("MultiChoice Africa", importedFromCsv[0].company)
+        assertEquals("broadcast@multichoice.co.za", importedFromCsv[0].email)
+    }
 }

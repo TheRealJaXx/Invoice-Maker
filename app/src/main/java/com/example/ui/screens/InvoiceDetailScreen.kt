@@ -184,6 +184,18 @@ fun InvoiceDetailScreen(
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold
                             )
+                            if (invoice.poNumber.isNotBlank() || invoice.inviteNumber.isNotBlank()) {
+                                Spacer(Modifier.height(3.dp))
+                                Text(
+                                    text = listOfNotNull(
+                                        if (invoice.poNumber.isNotBlank()) "PO: ${invoice.poNumber}" else null,
+                                        if (invoice.inviteNumber.isNotBlank()) "Invite: ${invoice.inviteNumber}" else null
+                                    ).joinToString(" • "),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
 
                         StatusBadge(status = invoice.status)
@@ -323,11 +335,24 @@ fun InvoiceDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(item.description, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                Text(item.description, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                if (item.formattedDatesSummary.isNotBlank()) {
+                                    Text(
+                                        text = "Dates: ${item.formattedDatesSummary}",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                                 val daysCount = if (item.quantity % 1.0 == 0.0) item.quantity.toInt().toString() else item.quantity.toString()
                                 val daysUnit = if (daysCount == "1") "day" else "days"
+                                val rateText = if (item.dateMode == "SEPARATE" && item.separateDays.isNotEmpty()) {
+                                    "$daysCount $daysUnit (variable daily rates)"
+                                } else {
+                                    "$daysCount $daysUnit @ ${Formatters.formatCurrency(item.dailyRate, currency)} / day"
+                                }
                                 Text(
-                                    "$daysCount $daysUnit @ ${Formatters.formatCurrency(item.unitPrice, currency)} / day",
+                                    rateText,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -335,7 +360,8 @@ fun InvoiceDetailScreen(
                             Text(
                                 Formatters.formatCurrency(item.total, currency),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                         if (idx < items.size - 1) {

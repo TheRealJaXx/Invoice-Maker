@@ -16,12 +16,20 @@ class FreelanceRepository(private val db: AppDatabase) {
 
     suspend fun insertClient(client: Client): Long = db.clientDao().insertClient(client)
 
+    suspend fun insertClients(clients: List<Client>): List<Long> = db.clientDao().insertClients(clients)
+
+    suspend fun getAllClientsList(): List<Client> = db.clientDao().getAllClientsList()
+
     suspend fun updateClient(client: Client) = db.clientDao().updateClient(client)
 
     suspend fun deleteClient(client: Client) = db.clientDao().deleteClient(client)
 
     // --- Invoices ---
     val allInvoices: Flow<List<Invoice>> = db.invoiceDao().getAllInvoices()
+
+    suspend fun getAllInvoicesList(): List<Invoice> = db.invoiceDao().getAllInvoicesList()
+
+    suspend fun insertInvoices(invoices: List<Invoice>): List<Long> = db.invoiceDao().insertInvoices(invoices)
 
     suspend fun getInvoiceById(id: Long): Invoice? = db.invoiceDao().getInvoiceById(id)
 
@@ -62,6 +70,10 @@ class FreelanceRepository(private val db: AppDatabase) {
 
     // --- Quotes ---
     val allQuotes: Flow<List<Quote>> = db.quoteDao().getAllQuotes()
+
+    suspend fun getAllQuotesList(): List<Quote> = db.quoteDao().getAllQuotesList()
+
+    suspend fun insertQuotes(quotes: List<Quote>): List<Long> = db.quoteDao().insertQuotes(quotes)
 
     suspend fun getQuoteById(id: Long): Quote? = db.quoteDao().getQuoteById(id)
 

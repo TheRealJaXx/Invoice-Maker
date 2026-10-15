@@ -116,7 +116,7 @@ fun InvoiceEditScreen(
         mutableStateOf(
             if (existingInvoice != null) LineItemConverter.fromJson(existingInvoice.itemsJson)
             else listOf(
-                LineItem(description = "Freelance Consulting / Deliverables", quantity = 1.0, unitPrice = 650.0)
+                LineItem(project = "", service = "TD/Vision Mixer", days = 1.0, dailyRate = 4500.0)
             )
         )
     }

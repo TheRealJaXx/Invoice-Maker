@@ -120,8 +120,26 @@ abstract class AppDatabase : RoomDatabase() {
 
             // Seed invoices in Rand (R) with daily rates
             val itemsInv1 = listOf(
-                LineItem(description = "Mobile App Architecture & Core Engineering", quantity = 8.0, unitPrice = 4500.0),
-                LineItem(description = "API Endpoint Integration & QA Testing", quantity = 4.0, unitPrice = 4500.0)
+                LineItem(
+                    project = "Springbok Rugby Championship Broadcast",
+                    service = "TD/Vision Mixer",
+                    dateMode = "RANGE",
+                    startDate = "10 Oct 2026",
+                    endDate = "12 Oct 2026",
+                    dates = "10 Oct – 12 Oct 2026",
+                    days = 3.0,
+                    dailyRate = 4500.0
+                ),
+                LineItem(
+                    project = "Springbok Rugby Championship Broadcast",
+                    service = "Streaming",
+                    dateMode = "RANGE",
+                    startDate = "10 Oct 2026",
+                    endDate = "11 Oct 2026",
+                    dates = "10 Oct – 11 Oct 2026",
+                    days = 2.0,
+                    dailyRate = 4000.0
+                )
             )
             val subtotalInv1 = itemsInv1.sumOf { it.subtotal }
             val totalInv1 = itemsInv1.sumOf { it.total }
@@ -152,8 +170,26 @@ abstract class AppDatabase : RoomDatabase() {
             )
 
             val itemsInv2 = listOf(
-                LineItem(description = "UI Design System & Component Library", quantity = 6.0, unitPrice = 4000.0),
-                LineItem(description = "Performance Optimization Audit", quantity = 2.0, unitPrice = 4800.0)
+                LineItem(
+                    project = "Standard Bank Leadership Summit",
+                    service = "vMix Operator",
+                    dateMode = "RANGE",
+                    startDate = "14 Oct 2026",
+                    endDate = "15 Oct 2026",
+                    dates = "14 Oct – 15 Oct 2026",
+                    days = 2.0,
+                    dailyRate = 4200.0
+                ),
+                LineItem(
+                    project = "Standard Bank Leadership Summit",
+                    service = "PTZ Camera Operator",
+                    dateMode = "RANGE",
+                    startDate = "14 Oct 2026",
+                    endDate = "14 Oct 2026",
+                    dates = "14 Oct 2026",
+                    days = 1.0,
+                    dailyRate = 3500.0
+                )
             )
             val subtotalInv2 = itemsInv2.sumOf { it.subtotal }
             val totalInv2 = itemsInv2.sumOf { it.total }
@@ -184,8 +220,26 @@ abstract class AppDatabase : RoomDatabase() {
 
             // Seed quote in Rand (R) with daily rates
             val itemsQte1 = listOf(
-                LineItem(description = "Creative Direction & Brand Strategy", quantity = 4.0, unitPrice = 5000.0),
-                LineItem(description = "Custom Interface Iconography Pack", quantity = 2.0, unitPrice = 4500.0)
+                LineItem(
+                    project = "Cape Town International Film Fest Live",
+                    service = "Technical Director",
+                    dateMode = "RANGE",
+                    startDate = "20 Oct 2026",
+                    endDate = "22 Oct 2026",
+                    dates = "20 Oct – 22 Oct 2026",
+                    days = 3.0,
+                    dailyRate = 5000.0
+                ),
+                LineItem(
+                    project = "Cape Town International Film Fest Live",
+                    service = "Network Specialist",
+                    dateMode = "RANGE",
+                    startDate = "20 Oct 2026",
+                    endDate = "21 Oct 2026",
+                    dates = "20 Oct – 21 Oct 2026",
+                    days = 2.0,
+                    dailyRate = 4500.0
+                )
             )
             val subtotalQ1 = itemsQte1.sumOf { it.subtotal }
             val totalQ1 = itemsQte1.sumOf { it.total }

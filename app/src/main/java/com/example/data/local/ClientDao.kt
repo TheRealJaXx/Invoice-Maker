@@ -20,6 +20,12 @@ interface ClientDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertClient(client: Client): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertClients(clients: List<Client>): List<Long>
+
+    @Query("SELECT * FROM clients")
+    suspend fun getAllClientsList(): List<Client>
+
     @Update
     suspend fun updateClient(client: Client)
 

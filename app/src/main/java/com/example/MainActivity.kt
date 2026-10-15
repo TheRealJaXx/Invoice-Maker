@@ -296,7 +296,12 @@ fun FreelanceApp(viewModel: FreelanceViewModel) {
                 is Screen.Clients -> {
                     ClientsScreen(
                         clients = clients,
-                        onNavigate = { viewModel.navigateTo(it) }
+                        onNavigate = { viewModel.navigateTo(it) },
+                        onImportClients = { importedList ->
+                            viewModel.importClients(importedList) { count ->
+                                Toast.makeText(context, "Imported $count clients!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                 }
 
@@ -340,7 +345,20 @@ fun FreelanceApp(viewModel: FreelanceViewModel) {
                 is Screen.Settings -> {
                     SettingsScreen(
                         profile = profile,
-                        onSaveProfile = { updated -> viewModel.saveProfile(updated) }
+                        clients = clients,
+                        invoices = invoices,
+                        quotes = quotes,
+                        onSaveProfile = { updated -> viewModel.saveProfile(updated) },
+                        onRestoreBackup = { backup ->
+                            viewModel.restoreFullBackup(backup) {
+                                Toast.makeText(context, "Full backup restored!", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onImportClients = { importedList ->
+                            viewModel.importClients(importedList) { count ->
+                                Toast.makeText(context, "Imported $count clients!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                 }
             }
