@@ -129,10 +129,6 @@ fun QuoteEditScreen(
                 actions = {
                     Button(
                         onClick = {
-                            if (clientName.isBlank() || clientEmail.isBlank()) {
-                                Toast.makeText(context, "Please select a client or enter client name & email", Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
                             if (lineItems.isEmpty()) {
                                 Toast.makeText(context, "Please add at least one line item", Toast.LENGTH_SHORT).show()
                                 return@Button
@@ -208,7 +204,7 @@ fun QuoteEditScreen(
                     OutlinedTextField(
                         value = inviteNumber,
                         onValueChange = { inviteNumber = it },
-                        label = { Text("Job Invite Number *") },
+                        label = { Text("Job Invite Number") },
                         placeholder = { Text("e.g. INVITE-8491, LEAD-2026-X") },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -276,7 +272,7 @@ fun QuoteEditScreen(
                     OutlinedTextField(
                         value = clientName,
                         onValueChange = { clientName = it },
-                        label = { Text("Client Name *") },
+                        label = { Text("Client Name") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("quote_client_name_input"),
@@ -289,7 +285,7 @@ fun QuoteEditScreen(
                     OutlinedTextField(
                         value = clientEmail,
                         onValueChange = { clientEmail = it },
-                        label = { Text("Client Email *") },
+                        label = { Text("Client Email") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("quote_client_email_input"),

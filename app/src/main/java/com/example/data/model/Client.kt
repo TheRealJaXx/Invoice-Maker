@@ -7,22 +7,46 @@ import androidx.room.PrimaryKey
 data class Client(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val name: String,
-    val company: String = "",
-    val email: String,
-    val phone: String = "",
-    val address: String = "",
-    val cityStateZip: String = "",
-    val notes: String = "",
+    val name: String = "",                 // Name / Company (e.g. Settlers Media Pty Ltd)
+    val company: String = "",              // Secondary Company / Trading Name
+    val address: String = "",              // Street Address (e.g. 93 1st Avenue)
+    val suburb: String = "",               // Suburb / Area (e.g. Fontainebleau)
+    val city: String = "",                 // City (e.g. Randburg)
+    val postalCode: String = "",           // Postal Code (e.g. 2194)
+    val cityStateZip: String = "",         // Legacy combined address
+    val vatNo: String = "",                // VAT Number (e.g. 4460266721)
+    val regNo: String = "",                // Registration Number (e.g. 2014/082117/07)
+    val email: String = "",                // Contact Email (e.g. thresini@settlersmedia.co.za)
+    val phone: String = "",                // Contact Phone (e.g. (072) 052 2463)
+    val notes: String = "",                // Internal notes
     val createdAt: Long = System.currentTimeMillis()
 ) {
+    val displayName: String
+        get() = when {
+            name.isNotBlank() -> name
+            company.isNotBlank() -> company
+            email.isNotBlank() -> email
+            else -> "Client"
+        }
+
+    val fullAddress: String
+        get() = buildString {
+            val parts = listOf(address, suburb, city, postalCode).filter { it.isNotBlank() }
+            if (parts.isNotEmpty()) {
+                append(parts.joinToString(", "))
+            } else if (cityStateZip.isNotBlank()) {
+                append(cityStateZip)
+            }
+        }
+
     val initials: String
         get() {
-            val parts = name.trim().split("\\s+".toRegex())
+            val textToUse = name.ifBlank { company }
+            val parts = textToUse.trim().split("\\s+".toRegex())
             return when {
                 parts.size >= 2 -> "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${parts[1].firstOrNull()?.uppercaseChar() ?: ""}"
-                name.isNotBlank() -> name.take(2).uppercase()
-                company.isNotBlank() -> company.take(2).uppercase()
+                textToUse.isNotBlank() -> textToUse.take(2).uppercase()
+                email.isNotBlank() -> email.take(2).uppercase()
                 else -> "CL"
             }
         }

@@ -138,10 +138,6 @@ fun InvoiceEditScreen(
                 actions = {
                     Button(
                         onClick = {
-                            if (clientName.isBlank() || clientEmail.isBlank()) {
-                                Toast.makeText(context, "Please select a client or enter client name & email", Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
                             if (lineItems.isEmpty()) {
                                 Toast.makeText(context, "Please add at least one line item", Toast.LENGTH_SHORT).show()
                                 return@Button
@@ -270,7 +266,7 @@ fun InvoiceEditScreen(
                     OutlinedTextField(
                         value = clientName,
                         onValueChange = { clientName = it },
-                        label = { Text("Client Name *") },
+                        label = { Text("Client Name") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("invoice_client_name_input"),
@@ -283,7 +279,7 @@ fun InvoiceEditScreen(
                     OutlinedTextField(
                         value = clientEmail,
                         onValueChange = { clientEmail = it },
-                        label = { Text("Client Email *") },
+                        label = { Text("Client Email") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("invoice_client_email_input"),

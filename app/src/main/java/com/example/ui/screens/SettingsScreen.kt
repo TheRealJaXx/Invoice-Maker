@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -73,6 +74,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    var entityType by remember(profile) { mutableStateOf(profile.entityType.ifBlank { "INDIVIDUAL" }) }
     var businessName by remember(profile) { mutableStateOf(profile.businessName) }
     var ownerName by remember(profile) { mutableStateOf(profile.ownerName) }
     var email by remember(profile) { mutableStateOf(profile.email) }
@@ -155,7 +157,7 @@ fun SettingsScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            // Business Profile Card
+            // Personal Details Card
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -168,38 +170,112 @@ fun SettingsScreen(
                         .padding(16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Business, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            if (entityType.equals("INDIVIDUAL", ignoreCase = true)) Icons.Default.Person else Icons.Default.Business,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                         Spacer(Modifier.width(8.dp))
-                        Text("Freelancer / Studio Info", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text("Personal Details", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
 
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                    OutlinedTextField(
-                        value = businessName,
-                        onValueChange = { businessName = it },
-                        label = { Text("Business / Trading Name") },
-                        placeholder = { Text("Apex Creative Studio") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("settings_business_name_input"),
-                        singleLine = true,
-                        shape = RoundedCornerShape(8.dp)
-                    )
+                    Text("Operating As:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(6.dp))
 
-                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        val isInd = entityType.equals("INDIVIDUAL", ignoreCase = true)
+                        FilterChip(
+                            selected = isInd,
+                            onClick = { entityType = "INDIVIDUAL" },
+                            leadingIcon = {
+                                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp))
+                            },
+                            label = {
+                                Text("Individual", fontWeight = if (isInd) FontWeight.Bold else FontWeight.Normal)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("select_entity_individual")
+                        )
 
-                    OutlinedTextField(
-                        value = ownerName,
-                        onValueChange = { ownerName = it },
-                        label = { Text("Your Name (Freelancer)") },
-                        placeholder = { Text("Jacques Du Plessis") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("settings_owner_name_input"),
-                        singleLine = true,
-                        shape = RoundedCornerShape(8.dp)
-                    )
+                        val isComp = entityType.equals("COMPANY", ignoreCase = true)
+                        FilterChip(
+                            selected = isComp,
+                            onClick = { entityType = "COMPANY" },
+                            leadingIcon = {
+                                Icon(Icons.Default.Business, contentDescription = null, modifier = Modifier.size(16.dp))
+                            },
+                            label = {
+                                Text("Company", fontWeight = if (isComp) FontWeight.Bold else FontWeight.Normal)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("select_entity_company")
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    if (entityType.equals("INDIVIDUAL", ignoreCase = true)) {
+                        Text(
+                            text = "ℹ️ Individual mode: Quotes and invoices will display your personal name at the top. No company name will appear on your documents.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = ownerName,
+                            onValueChange = { ownerName = it },
+                            label = { Text("Your Full Name") },
+                            placeholder = { Text("e.g. Jacques Du Plessis") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_owner_name_input"),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "ℹ️ Company mode: Quotes and invoices will display your company name at the top.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = businessName,
+                            onValueChange = { businessName = it },
+                            label = { Text("Company / Trading Name") },
+                            placeholder = { Text("e.g. Apex Creative Studio Pty Ltd") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_business_name_input"),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+
+                        Spacer(Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = ownerName,
+                            onValueChange = { ownerName = it },
+                            label = { Text("Representative / Contact Person") },
+                            placeholder = { Text("e.g. Jacques Du Plessis") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_owner_name_input"),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
 
                     Spacer(Modifier.height(10.dp))
 
@@ -421,9 +497,10 @@ fun SettingsScreen(
             }
 
             Button(
-                onClick = {
+                    val isInd = entityType.equals("INDIVIDUAL", ignoreCase = true)
                     val updated = profile.copy(
-                        businessName = businessName.trim(),
+                        entityType = entityType,
+                        businessName = if (isInd) "" else businessName.trim(),
                         ownerName = ownerName.trim(),
                         email = email.trim(),
                         phone = phone.trim(),

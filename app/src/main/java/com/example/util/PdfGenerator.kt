@@ -127,10 +127,20 @@ object PdfGenerator {
         var y = 45f
 
         // Freelancer Info (Top Left)
-        canvas.drawText(profile.businessName.ifBlank { "Freelance Services" }, MARGIN, y, headerTitlePaint)
-        y += 15f
-        canvas.drawText(profile.ownerName, MARGIN, y, bodyBoldPaint)
-        y += 13f
+        // When individual is selected, the top of the quote/invoice CANNOT have a company name!
+        if (profile.isIndividual) {
+            val displayName = profile.ownerName.ifBlank { "Freelance Professional" }
+            canvas.drawText(displayName, MARGIN, y, headerTitlePaint)
+            y += 16f
+        } else {
+            val companyName = profile.businessName.ifBlank { "Freelance Services" }
+            canvas.drawText(companyName, MARGIN, y, headerTitlePaint)
+            y += 15f
+            if (profile.ownerName.isNotBlank()) {
+                canvas.drawText(profile.ownerName, MARGIN, y, bodyBoldPaint)
+                y += 13f
+            }
+        }
         if (profile.email.isNotBlank()) {
             canvas.drawText(profile.email, MARGIN, y, subheaderPaint)
             y += 12f
@@ -139,8 +149,9 @@ object PdfGenerator {
             canvas.drawText(profile.phone, MARGIN, y, subheaderPaint)
             y += 12f
         }
-        if (profile.address.isNotBlank()) {
-            canvas.drawText("${profile.address}, ${profile.cityStateZip}", MARGIN, y, subheaderPaint)
+        val addrStr = listOf(profile.address, profile.cityStateZip).filter { it.isNotBlank() }.joinToString(", ")
+        if (addrStr.isNotBlank()) {
+            canvas.drawText(addrStr, MARGIN, y, subheaderPaint)
             y += 12f
         }
 
@@ -462,16 +473,31 @@ object PdfGenerator {
         var y = 45f
 
         // Top Left Freelancer info
-        canvas.drawText(profile.businessName.ifBlank { "Freelance Studio" }, MARGIN, y, headerTitlePaint)
-        y += 15f
-        canvas.drawText(profile.ownerName, MARGIN, y, bodyBoldPaint)
-        y += 13f
+        // When individual is selected, the top of the quote/invoice CANNOT have a company name!
+        if (profile.isIndividual) {
+            val displayName = profile.ownerName.ifBlank { "Freelance Professional" }
+            canvas.drawText(displayName, MARGIN, y, headerTitlePaint)
+            y += 16f
+        } else {
+            val companyName = profile.businessName.ifBlank { "Freelance Studio" }
+            canvas.drawText(companyName, MARGIN, y, headerTitlePaint)
+            y += 15f
+            if (profile.ownerName.isNotBlank()) {
+                canvas.drawText(profile.ownerName, MARGIN, y, bodyBoldPaint)
+                y += 13f
+            }
+        }
         if (profile.email.isNotBlank()) {
             canvas.drawText(profile.email, MARGIN, y, subheaderPaint)
             y += 12f
         }
         if (profile.phone.isNotBlank()) {
             canvas.drawText(profile.phone, MARGIN, y, subheaderPaint)
+            y += 12f
+        }
+        val quoteAddrStr = listOf(profile.address, profile.cityStateZip).filter { it.isNotBlank() }.joinToString(", ")
+        if (quoteAddrStr.isNotBlank()) {
+            canvas.drawText(quoteAddrStr, MARGIN, y, subheaderPaint)
             y += 12f
         }
 

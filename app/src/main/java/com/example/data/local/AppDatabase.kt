@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         Quote::class,
         FreelancerProfile::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -62,10 +62,11 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private suspend fun populateInitialData(db: AppDatabase) {
-            // Seed South African freelancer profile
+            // Seed South African freelancer profile as Individual by default
             db.profileDao().insertOrUpdate(
                 FreelancerProfile(
                     id = 1,
+                    entityType = "INDIVIDUAL",
                     businessName = "Apex Creative Studio",
                     ownerName = "Jacques Du Plessis",
                     email = "billing@apexcreative.co.za",
