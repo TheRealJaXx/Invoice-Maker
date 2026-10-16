@@ -497,6 +497,7 @@ fun SettingsScreen(
             }
 
             Button(
+                onClick = {
                     val isInd = entityType.equals("INDIVIDUAL", ignoreCase = true)
                     val updated = profile.copy(
                         entityType = entityType,

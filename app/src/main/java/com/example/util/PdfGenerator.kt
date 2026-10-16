@@ -288,6 +288,12 @@ object PdfGenerator {
             textSize = 8.5f
             isAntiAlias = true
         }
+        val rowSubBoldPaint = Paint().apply {
+            color = Color.rgb(30, 50, 40)
+            textSize = 8.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
         val rowValPaint = Paint().apply {
             color = Color.rgb(40, 40, 40)
             textSize = 9.5f
@@ -318,11 +324,19 @@ object PdfGenerator {
             canvas.drawText(rateDisplay, rateX, itemY, rowValPaint)
             canvas.drawText(Formatters.formatCurrency(item.total, currency), amountX, itemY, rightAlignRowPaint)
 
-            // Subtitle: Dates or breakdown
-            val datesSummary = item.formattedDatesSummary
-            if (datesSummary.isNotBlank()) {
-                canvas.drawText("Dates: $datesSummary", descX, itemY + 12f, rowSubPaint)
-                y += 28f
+            // Dates breakdown: when dates are scattered, put each date on a new line!
+            var currentSubY = itemY + 12f
+            if (item.isScatteredDates && item.dateLines.size > 1) {
+                canvas.drawText("Dates Worked (${item.dateLines.size} days):", descX, currentSubY, rowSubBoldPaint)
+                currentSubY += 11f
+                for (dLine in item.dateLines) {
+                    canvas.drawText("• $dLine", descX + 6f, currentSubY, rowSubPaint)
+                    currentSubY += 11f
+                }
+                y = currentSubY + 4f
+            } else if (item.formattedDatesSummary.isNotBlank()) {
+                canvas.drawText("Dates: ${item.formattedDatesSummary}", descX, currentSubY, rowSubPaint)
+                y = currentSubY + 16f
             } else {
                 y += 22f
             }
@@ -622,6 +636,12 @@ object PdfGenerator {
             textSize = 8.5f
             isAntiAlias = true
         }
+        val rowSubBoldPaint = Paint().apply {
+            color = Color.rgb(30, 50, 40)
+            textSize = 8.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
         val rowValPaint = Paint().apply {
             color = Color.rgb(40, 40, 40)
             textSize = 9.5f
@@ -650,10 +670,19 @@ object PdfGenerator {
             canvas.drawText(rateDisplay, rateX, itemY, rowValPaint)
             canvas.drawText(Formatters.formatCurrency(item.total, currency), amountX, itemY, rightAlignRowPaint)
 
-            val datesSummary = item.formattedDatesSummary
-            if (datesSummary.isNotBlank()) {
-                canvas.drawText("Dates: $datesSummary", descX, itemY + 12f, rowSubPaint)
-                y += 28f
+            // Dates breakdown: when dates are scattered, put each date on a new line!
+            var currentSubY = itemY + 12f
+            if (item.isScatteredDates && item.dateLines.size > 1) {
+                canvas.drawText("Dates Worked (${item.dateLines.size} days):", descX, currentSubY, rowSubBoldPaint)
+                currentSubY += 11f
+                for (dLine in item.dateLines) {
+                    canvas.drawText("• $dLine", descX + 6f, currentSubY, rowSubPaint)
+                    currentSubY += 11f
+                }
+                y = currentSubY + 4f
+            } else if (item.formattedDatesSummary.isNotBlank()) {
+                canvas.drawText("Dates: ${item.formattedDatesSummary}", descX, currentSubY, rowSubPaint)
+                y = currentSubY + 16f
             } else {
                 y += 22f
             }

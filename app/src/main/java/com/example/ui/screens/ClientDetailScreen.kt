@@ -205,16 +205,38 @@ fun ClientDetailScreen(
                         }
                     }
 
-                    if (client.address.isNotBlank() || client.cityStateZip.isNotBlank()) {
+                    val addrDisplay = client.fullAddress
+                    if (addrDisplay.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(vertical = 4.dp)) {
                             Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                text = listOf(client.address, client.cityStateZip).filter { it.isNotBlank() }.joinToString(", "),
+                                text = addrDisplay,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                        }
+                    }
+
+                    if (client.vatNo.isNotBlank() || client.regNo.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            if (client.vatNo.isNotBlank()) {
+                                Column {
+                                    Text("VAT Number", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(client.vatNo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                            if (client.regNo.isNotBlank()) {
+                                Column {
+                                    Text("Company Reg No", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(client.regNo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                            }
                         }
                     }
 

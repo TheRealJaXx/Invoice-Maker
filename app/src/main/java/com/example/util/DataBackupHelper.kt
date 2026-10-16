@@ -40,10 +40,15 @@ object DataBackupHelper {
                 put("id", c.id)
                 put("name", c.name)
                 put("company", c.company)
+                put("address", c.address)
+                put("suburb", c.suburb)
+                put("city", c.city)
+                put("postalCode", c.postalCode)
+                put("cityStateZip", c.cityStateZip)
+                put("vatNo", c.vatNo)
+                put("regNo", c.regNo)
                 put("email", c.email)
                 put("phone", c.phone)
-                put("address", c.address)
-                put("cityStateZip", c.cityStateZip)
                 put("notes", c.notes)
             }
             clientsArray.put(obj)
@@ -94,10 +99,15 @@ object DataBackupHelper {
                             id = 0L, // New auto-generated id on import
                             name = if (name.isNotBlank()) name else "Unnamed Client",
                             company = item.optString("company", ""),
+                            address = item.optString("address", ""),
+                            suburb = item.optString("suburb", ""),
+                            city = item.optString("city", ""),
+                            postalCode = item.optString("postalCode", ""),
+                            cityStateZip = item.optString("cityStateZip", ""),
+                            vatNo = item.optString("vatNo", ""),
+                            regNo = item.optString("regNo", ""),
                             email = email,
                             phone = item.optString("phone", ""),
-                            address = item.optString("address", ""),
-                            cityStateZip = item.optString("cityStateZip", ""),
                             notes = item.optString("notes", "")
                         )
                     )
@@ -190,6 +200,7 @@ object DataBackupHelper {
 
         // Profile
         val profObj = JSONObject().apply {
+            put("entityType", profile.entityType)
             put("businessName", profile.businessName)
             put("ownerName", profile.ownerName)
             put("email", profile.email)
@@ -214,10 +225,15 @@ object DataBackupHelper {
                     put("id", c.id)
                     put("name", c.name)
                     put("company", c.company)
+                    put("address", c.address)
+                    put("suburb", c.suburb)
+                    put("city", c.city)
+                    put("postalCode", c.postalCode)
+                    put("cityStateZip", c.cityStateZip)
+                    put("vatNo", c.vatNo)
+                    put("regNo", c.regNo)
                     put("email", c.email)
                     put("phone", c.phone)
-                    put("address", c.address)
-                    put("cityStateZip", c.cityStateZip)
                     put("notes", c.notes)
                 }
             )
@@ -365,6 +381,7 @@ object DataBackupHelper {
             val pObj = root.getJSONObject("profile")
             profile = FreelancerProfile(
                 id = 1,
+                entityType = pObj.optString("entityType", "INDIVIDUAL"),
                 businessName = pObj.optString("businessName", "Freelance Creative"),
                 ownerName = pObj.optString("ownerName", "Freelancer"),
                 email = pObj.optString("email", "billing@freelancer.co.za"),

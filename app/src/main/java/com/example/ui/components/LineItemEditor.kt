@@ -302,13 +302,30 @@ fun LineItemEditor(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 fontWeight = FontWeight.Bold
                                             )
-                                            val summaryText = item.formattedDatesSummary.ifBlank { "Tap to select dates (Range or Separate days)" }
-                                            Text(
-                                                text = summaryText,
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
+                                            if (item.isScatteredDates && item.dateLines.size > 1) {
+                                                Text(
+                                                    text = "Dates Worked (${item.dateLines.size} days):",
+                                                    fontSize = 11.5.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                                item.dateLines.forEach { dLine ->
+                                                    Text(
+                                                        text = "• $dLine",
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+                                            } else {
+                                                val summaryText = item.formattedDatesSummary.ifBlank { "Tap to select dates (Range or Separate days)" }
+                                                Text(
+                                                    text = summaryText,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }
                                         }
                                     }
 

@@ -71,6 +71,37 @@ data class LineItem(
     val subtotal: Double
         get() = total
 
+    val isScatteredDates: Boolean
+        get() = (dateMode == "SEPARATE" && separateDays.isNotEmpty()) ||
+                dates.contains(",") ||
+                dates.contains("\n")
+
+    // Helper returning each date on a new line when dates are scattered
+    val dateLines: List<String>
+        get() = when {
+            dateMode == "SEPARATE" && separateDays.isNotEmpty() -> {
+                separateDays.map { d ->
+                    buildString {
+                        append(d.date)
+                        if (d.label.isNotBlank()) append(" (${d.label})")
+                        if (d.rate > 0) append(" — R ${"%,.2f".format(java.util.Locale.US, d.rate)}")
+                    }
+                }
+            }
+            dates.contains("\n") -> {
+                dates.lines().map { it.trim().removePrefix("•").trim() }.filter { it.isNotBlank() }
+            }
+            dates.contains(",") -> {
+                dates.split(",").map { it.trim().removePrefix("•").trim() }.filter { it.isNotBlank() }
+            }
+            dates.isNotBlank() -> listOf(dates)
+            startDate.isNotBlank() && endDate.isNotBlank() -> {
+                if (startDate == endDate) listOf(startDate) else listOf("$startDate – $endDate")
+            }
+            startDate.isNotBlank() -> listOf(startDate)
+            else -> emptyList()
+        }
+
     // Helper formatting for dates displayed on invoice & PDF
     val formattedDatesSummary: String
         get() = when {

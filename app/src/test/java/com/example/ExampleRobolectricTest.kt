@@ -161,4 +161,43 @@ class ExampleRobolectricTest {
         assertEquals("MultiChoice Africa", importedFromCsv[0].company)
         assertEquals("broadcast@multichoice.co.za", importedFromCsv[0].email)
     }
+
+    @Test
+    fun individualEntityTypeOmitCompanyNameTest() {
+        val individualProfile = com.example.data.model.FreelancerProfile(
+            entityType = "INDIVIDUAL",
+            businessName = "Settlers Media Pty Ltd",
+            ownerName = "Jacques Du Plessis"
+        )
+        assertTrue(individualProfile.isIndividual)
+
+        val companyProfile = com.example.data.model.FreelancerProfile(
+            entityType = "COMPANY",
+            businessName = "Settlers Media Pty Ltd",
+            ownerName = "Jacques Du Plessis"
+        )
+        org.junit.Assert.assertFalse(companyProfile.isIndividual)
+    }
+
+    @Test
+    fun scatteredDatesEachOnNewLineTest() {
+        val item = LineItem(
+            project = "Springbok Match Broadcast",
+            service = "vMix Operator",
+            dateMode = "SEPARATE",
+            separateDays = listOf(
+                com.example.data.model.DayRate("12 Oct 2026", 3500.0, "Setup"),
+                com.example.data.model.DayRate("15 Oct 2026", 4500.0, "Match 1"),
+                com.example.data.model.DayRate("18 Oct 2026", 4500.0, "Match 2")
+            )
+        )
+
+        assertTrue(item.isScatteredDates)
+        val lines = item.dateLines
+        assertEquals(3, lines.size)
+        assertTrue(lines[0].contains("12 Oct 2026"))
+        assertTrue(lines[0].contains("Setup"))
+        assertTrue(lines[1].contains("15 Oct 2026"))
+        assertTrue(lines[2].contains("18 Oct 2026"))
+    }
 }

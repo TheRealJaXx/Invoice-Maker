@@ -336,7 +336,23 @@ fun InvoiceDetailScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(item.description, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                if (item.formattedDatesSummary.isNotBlank()) {
+                                if (item.isScatteredDates && item.dateLines.size > 1) {
+                                    Spacer(Modifier.height(3.dp))
+                                    Text(
+                                        text = "Dates Worked (${item.dateLines.size} days):",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    item.dateLines.forEach { dLine ->
+                                        Text(
+                                            text = "• $dLine",
+                                            fontSize = 11.5.sp,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.padding(start = 6.dp, top = 1.dp)
+                                        )
+                                    }
+                                } else if (item.formattedDatesSummary.isNotBlank()) {
                                     Text(
                                         text = "Dates: ${item.formattedDatesSummary}",
                                         fontSize = 12.sp,
