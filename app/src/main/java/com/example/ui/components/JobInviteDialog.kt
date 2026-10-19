@@ -143,7 +143,7 @@ fun JobInviteDialog(
                         inviteNumber = it
                         errorMessage = ""
                     },
-                    label = { Text("Job Invite / RFP Reference #") },
+                    label = { Text("Job Invite Reference #") },
                     placeholder = { Text("e.g. INVITE-8491, JOB-2026-X") },
                     modifier = Modifier
                         .fillMaxWidth()
