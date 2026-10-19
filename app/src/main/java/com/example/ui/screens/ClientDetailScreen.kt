@@ -185,6 +185,46 @@ fun ClientDetailScreen(
                         Text(client.email, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
 
+                    if (client.quoteEmail.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.quoteEmail.replace(" ", "")}"))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text("Quotes: ${client.quoteEmail}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+
+                    if (client.invoiceEmail.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.invoiceEmail.replace(" ", "")}"))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text("Invoices: ${client.invoiceEmail}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+
                     if (client.phone.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Row(
