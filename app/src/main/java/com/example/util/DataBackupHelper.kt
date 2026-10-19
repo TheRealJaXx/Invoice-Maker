@@ -1,4 +1,4 @@
-Apackage com.example.util
+package com.example.util
 
 import android.content.Context
 import android.content.Intent
@@ -48,6 +48,8 @@ object DataBackupHelper {
                 put("vatNo", c.vatNo)
                 put("regNo", c.regNo)
                 put("email", c.email)
+                put("quoteEmail", c.quoteEmail)
+                put("invoiceEmail", c.invoiceEmail)
                 put("phone", c.phone)
                 put("notes", c.notes)
             }
@@ -107,6 +109,8 @@ object DataBackupHelper {
                             vatNo = item.optString("vatNo", ""),
                             regNo = item.optString("regNo", ""),
                             email = email,
+                            quoteEmail = item.optString("quoteEmail", ""),
+                            invoiceEmail = item.optString("invoiceEmail", ""),
                             phone = item.optString("phone", ""),
                             notes = item.optString("notes", "")
                         )
@@ -233,6 +237,8 @@ object DataBackupHelper {
                     put("vatNo", c.vatNo)
                     put("regNo", c.regNo)
                     put("email", c.email)
+                    put("quoteEmail", c.quoteEmail)
+                    put("invoiceEmail", c.invoiceEmail)
                     put("phone", c.phone)
                     put("notes", c.notes)
                 }
