@@ -11,6 +11,10 @@ import java.io.File
 
 object EmailHelper {
 
+    /** Splits "a@x.com, b@y.com; c@z.com" into separate recipients. */
+    private fun recipients(raw: String): Array<String> =
+        raw.split(',', ';', '\n').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray()
+
     fun sendInvoiceEmail(context: Context, invoice: Invoice, profile: FreelancerProfile): Boolean {
         return try {
             val pdfFile = PdfGenerator.generateInvoicePdf(context, invoice, profile)
@@ -42,7 +46,7 @@ object EmailHelper {
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(invoice.clientEmail))
+                putExtra(Intent.EXTRA_EMAIL, recipients(invoice.clientEmail))
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(Intent.EXTRA_TEXT, bodyBuilder.toString())
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -91,7 +95,7 @@ object EmailHelper {
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(quote.clientEmail))
+                putExtra(Intent.EXTRA_EMAIL, recipients(quote.clientEmail))
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(Intent.EXTRA_TEXT, bodyBuilder.toString())
                 putExtra(Intent.EXTRA_STREAM, uri)
