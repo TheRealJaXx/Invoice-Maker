@@ -30,46 +30,46 @@ object PdfGenerator {
         try {
             // Header / Profile Info
             paint.textSize = 20f
-            paint.isBold = true
+            paint.isFakeBoldText = true
             canvas.drawText(profile?.name ?: "Freelancer", 40f, 50f, paint)
 
             paint.textSize = 10f
-            paint.isBold = false
+            paint.isFakeBoldText = false
             canvas.drawText(profile?.email ?: "", 40f, 65f, paint)
             canvas.drawText(profile?.phone ?: "", 40f, 80f, paint)
             canvas.drawText(profile?.address ?: "", 40f, 95f, paint)
 
             // Invoice Title
             paint.textSize = 24f
-            paint.isBold = true
+            paint.isFakeBoldText = true
             canvas.drawText("INVOICE", 450f, 50f, paint)
 
             paint.textSize = 10f
-            paint.isBold = false
+            paint.isFakeBoldText = false
             canvas.drawText("Invoice #: ${invoice.invoiceNumber}", 450f, 70f, paint)
             canvas.drawText("Date: ${invoice.date}", 450f, 85f, paint)
             canvas.drawText("Due Date: ${invoice.dueDate}", 450f, 100f, paint)
 
             // Bill To
             paint.textSize = 14f
-            paint.isBold = true
+            paint.isFakeBoldText = true
             canvas.drawText("Bill To:", 40f, 140f, paint)
 
             paint.textSize = 12f
-            paint.isBold = false
+            paint.isFakeBoldText = false
             canvas.drawText(client?.name ?: invoice.clientName, 40f, 160f, paint)
             canvas.drawText(client?.address ?: "", 40f, 175f, paint)
             canvas.drawText(client?.email ?: "", 40f, 190f, paint)
 
             // Table Header
             var startY = 240f
-            paint.isBold = true
+            paint.isFakeBoldText = true
             canvas.drawText("Description", 40f, startY, paint)
             canvas.drawText("Qty", 350f, startY, paint)
             canvas.drawText("Price", 420f, startY, paint)
             canvas.drawText("Total", 500f, startY, paint)
 
-            paint.isBold = false
+            paint.isFakeBoldText = false
             startY += 10f
             canvas.drawLine(40f, startY, 555f, startY, paint)
 
@@ -78,62 +78,4 @@ object PdfGenerator {
             for (item in invoice.lineItems) {
                 canvas.drawText(item.description, 40f, startY, paint)
                 canvas.drawText(item.quantity.toString(), 350f, startY, paint)
-                canvas.drawText(Formatters.formatCurrency(item.unitPrice), 420f, startY, paint)
-                canvas.drawText(Formatters.formatCurrency(item.total), 500f, startY, paint)
-                startY += 25f
-            }
-
-            startY += 10f
-            canvas.drawLine(40f, startY, 555f, startY, paint)
-
-            // Total Amount
-            startY += 30f
-            paint.textSize = 16f
-            paint.isBold = true
-            canvas.drawText("Total: ${Formatters.formatCurrency(invoice.totalAmount)}", 400f, startY, paint)
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        pdfDocument.finishPage(page)
-
-        val fileName = "Invoice_${invoice.invoiceNumber}.pdf"
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
-
-        try {
-            pdfDocument.writeTo(FileOutputStream(file))
-        } catch (e: IOException) {
-            e.printStackTrace()
-            pdfDocument.close()
-            return null
-        }
-
-        pdfDocument.close()
-        return file
-    }
-
-    fun generateQuotePdf(
-        context: Context,
-        quote: Quote,
-        client: Client?,
-        profile: FreelancerProfile?
-    ): File? {
-        val pdfDocument = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-        val canvas: Canvas = page.canvas
-        val paint = Paint()
-
-        try {
-            paint.textSize = 20f
-            paint.isBold = true
-            canvas.drawText(profile?.name ?: "Freelancer", 40f, 50f, paint)
-
-            paint.textSize = 10f
-            paint.isBold = false
-            canvas.drawText(profile?.email ?: "", 40f, 65f, paint)
-            canvas.drawText(profile?.phone ?: "", 40f, 80f, paint)
-            canvas.drawText(profile?.address ?: "", 40f, 95f, paint)
-
-            paint.textSize = 24f
+                canvas.drawText(Formatters.formatCurrency(item.unitPrice), 420
