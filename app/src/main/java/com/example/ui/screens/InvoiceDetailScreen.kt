@@ -266,7 +266,7 @@ fun InvoiceDetailScreen(
                     if (invoice.inviteNumber.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Row {
-                            Text("Job Invite / RFP Ref: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Job Invite Ref: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(invoice.inviteNumber, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                         }
                     }
