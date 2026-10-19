@@ -91,7 +91,7 @@ fun QuoteEditScreen(
                 selectedClientId = cl.id
                 clientName = cl.name
                 clientCompany = cl.company
-                clientEmail = cl.email
+                clientEmail = cl.emailForQuotes
                 clientPhone = cl.phone
                 clientAddress = cl.address
                 clientCityStateZip = cl.cityStateZip
@@ -196,7 +196,7 @@ fun QuoteEditScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Assignment, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Job Invite / RFP Reference", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Job Invite Reference", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
 
                     Spacer(Modifier.height(10.dp))
@@ -432,7 +432,7 @@ fun QuoteEditScreen(
                 selectedClientId = client.id
                 clientName = client.name
                 clientCompany = client.company
-                clientEmail = client.email
+                clientEmail = client.emailForQuotes
                 clientPhone = client.phone
                 clientAddress = client.address
                 clientCityStateZip = client.cityStateZip
