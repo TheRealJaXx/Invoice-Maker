@@ -114,6 +114,10 @@ class FreelanceRepository(private val db: AppDatabase) {
         val prefix = profile.invoicePrefix.ifBlank { "INV-" }
         val invNumber = String.format("%s%04d", prefix, nextSeq)
 
+        val client = if (quote.clientId > 0) db.clientDao().getClientById(quote.clientId) else null
+        val invoiceEmail = client?.effectiveInvoiceEmail ?: quote.clientEmail
+        val invoiceEmail2 = client?.invoiceEmail2 ?: quote.clientEmail2
+
         val newInvoice = Invoice(
             invoiceNumber = invNumber,
             invoiceSequence = nextSeq,
@@ -123,10 +127,16 @@ class FreelanceRepository(private val db: AppDatabase) {
             clientId = quote.clientId,
             clientName = quote.clientName,
             clientCompany = quote.clientCompany,
-            clientEmail = quote.clientEmail,
+            clientEmail = invoiceEmail,
+            clientEmail2 = invoiceEmail2,
             clientPhone = quote.clientPhone,
             clientAddress = quote.clientAddress,
+            clientSuburb = quote.clientSuburb,
+            clientCity = quote.clientCity,
+            clientPostalCode = quote.clientPostalCode,
             clientCityStateZip = quote.clientCityStateZip,
+            clientVatNo = quote.clientVatNo,
+            clientRegNo = quote.clientRegNo,
             issueDate = System.currentTimeMillis(),
             dueDate = System.currentTimeMillis() + (profile.defaultPaymentTermsDays.toLong() * 24 * 60 * 60 * 1000),
             itemsJson = quote.itemsJson,

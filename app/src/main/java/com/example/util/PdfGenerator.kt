@@ -215,16 +215,26 @@ object PdfGenerator {
             canvas.drawText(invoice.clientEmail, MARGIN, clientY, bodyPaint)
             clientY += 12f
         }
+        if (invoice.clientEmail2.isNotBlank()) {
+            canvas.drawText(invoice.clientEmail2, MARGIN, clientY, bodyPaint)
+            clientY += 12f
+        }
         if (invoice.clientPhone.isNotBlank()) {
             canvas.drawText(invoice.clientPhone, MARGIN, clientY, bodyPaint)
             clientY += 12f
         }
-        if (invoice.clientAddress.isNotBlank()) {
-            canvas.drawText(invoice.clientAddress, MARGIN, clientY, bodyPaint)
+        if (invoice.clientVatNo.isNotBlank()) {
+            canvas.drawText("VAT No: ${invoice.clientVatNo}", MARGIN, clientY, bodyPaint)
             clientY += 12f
         }
-        if (invoice.clientCityStateZip.isNotBlank()) {
-            canvas.drawText(invoice.clientCityStateZip, MARGIN, clientY, bodyPaint)
+        if (invoice.clientRegNo.isNotBlank()) {
+            canvas.drawText("Reg No: ${invoice.clientRegNo}", MARGIN, clientY, bodyPaint)
+            clientY += 12f
+        }
+        val fullClientAddress = listOf(invoice.clientAddress, invoice.clientSuburb, invoice.clientCity, invoice.clientPostalCode).filter { it.isNotBlank() }.joinToString(", ")
+        val finalAddr = fullClientAddress.ifBlank { invoice.clientCityStateZip }
+        if (finalAddr.isNotBlank()) {
+            canvas.drawText(finalAddr, MARGIN, clientY, bodyPaint)
             clientY += 12f
         }
 
@@ -242,7 +252,7 @@ object PdfGenerator {
             metaY += 12f
         }
         if (invoice.inviteNumber.isNotBlank()) {
-            canvas.drawText("Job Invite Ref: ${invoice.inviteNumber}", col2X, metaY, bodyPaint)
+            canvas.drawText("Job Invite: ${invoice.inviteNumber}", col2X, metaY, bodyPaint)
             metaY += 12f
         }
 
@@ -572,8 +582,18 @@ object PdfGenerator {
             canvas.drawText(quote.clientEmail, MARGIN, clientY, bodyPaint)
             clientY += 12f
         }
+        if (quote.clientEmail2.isNotBlank()) {
+            canvas.drawText(quote.clientEmail2, MARGIN, clientY, bodyPaint)
+            clientY += 12f
+        }
         if (quote.clientPhone.isNotBlank()) {
             canvas.drawText(quote.clientPhone, MARGIN, clientY, bodyPaint)
+            clientY += 12f
+        }
+        val fullClientAddress = listOf(quote.clientAddress, quote.clientSuburb, quote.clientCity, quote.clientPostalCode).filter { it.isNotBlank() }.joinToString(", ")
+        val finalAddr = fullClientAddress.ifBlank { quote.clientCityStateZip }
+        if (finalAddr.isNotBlank()) {
+            canvas.drawText(finalAddr, MARGIN, clientY, bodyPaint)
             clientY += 12f
         }
 
@@ -587,7 +607,7 @@ object PdfGenerator {
         metaY += 12f
 
         if (quote.inviteNumber.isNotBlank()) {
-            canvas.drawText("Job Invite #: ${quote.inviteNumber}", col2X, metaY, bodyBoldPaint)
+            canvas.drawText("Job Invite: ${quote.inviteNumber}", col2X, metaY, bodyBoldPaint)
             metaY += 12f
         }
         if (quote.convertedInvoiceNumber != null) {

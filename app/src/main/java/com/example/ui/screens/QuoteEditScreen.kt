@@ -91,10 +91,10 @@ fun QuoteEditScreen(
                 selectedClientId = cl.id
                 clientName = cl.name
                 clientCompany = cl.company
-                clientEmail = cl.emailForQuotes
+                clientEmail = cl.effectiveQuoteEmail
                 clientPhone = cl.phone
                 clientAddress = cl.address
-                clientCityStateZip = cl.cityStateZip
+                clientCityStateZip = cl.fullAddress.ifBlank { cl.cityStateZip }
             }
         }
     }
@@ -196,7 +196,7 @@ fun QuoteEditScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Assignment, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Job Invite Reference", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Job Invite Reference (Optional)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
 
                     Spacer(Modifier.height(10.dp))
@@ -204,7 +204,7 @@ fun QuoteEditScreen(
                     OutlinedTextField(
                         value = inviteNumber,
                         onValueChange = { inviteNumber = it },
-                        label = { Text("Job Invite Number") },
+                        label = { Text("Job Invite Number (Optional)") },
                         placeholder = { Text("e.g. INVITE-8491, LEAD-2026-X") },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -432,10 +432,10 @@ fun QuoteEditScreen(
                 selectedClientId = client.id
                 clientName = client.name
                 clientCompany = client.company
-                clientEmail = client.emailForQuotes
+                clientEmail = client.effectiveQuoteEmail
                 clientPhone = client.phone
                 clientAddress = client.address
-                clientCityStateZip = client.cityStateZip
+                clientCityStateZip = client.fullAddress.ifBlank { client.cityStateZip }
                 showClientPicker = false
             },
             onAddNewClient = {

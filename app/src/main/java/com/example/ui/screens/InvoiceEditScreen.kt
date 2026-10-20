@@ -83,6 +83,7 @@ fun InvoiceEditScreen(
     var clientName by remember { mutableStateOf(existingInvoice?.clientName ?: "") }
     var clientCompany by remember { mutableStateOf(existingInvoice?.clientCompany ?: "") }
     var clientEmail by remember { mutableStateOf(existingInvoice?.clientEmail ?: "") }
+    var clientEmail2 by remember { mutableStateOf(existingInvoice?.clientEmail2 ?: "") }
     var clientPhone by remember { mutableStateOf(existingInvoice?.clientPhone ?: "") }
     var clientAddress by remember { mutableStateOf(existingInvoice?.clientAddress ?: "") }
     var clientCityStateZip by remember { mutableStateOf(existingInvoice?.clientCityStateZip ?: "") }
@@ -94,10 +95,11 @@ fun InvoiceEditScreen(
                 selectedClientId = cl.id
                 clientName = cl.name
                 clientCompany = cl.company
-                clientEmail = cl.emailForInvoices
+                clientEmail = cl.effectiveInvoiceEmail
+                clientEmail2 = cl.invoiceEmail2
                 clientPhone = cl.phone
                 clientAddress = cl.address
-                clientCityStateZip = cl.cityStateZip
+                clientCityStateZip = cl.fullAddress.ifBlank { cl.cityStateZip }
             }
         }
     }
@@ -157,6 +159,7 @@ fun InvoiceEditScreen(
                                 clientName = clientName.trim(),
                                 clientCompany = clientCompany.trim(),
                                 clientEmail = clientEmail.trim(),
+                                clientEmail2 = clientEmail2.trim(),
                                 clientPhone = clientPhone.trim(),
                                 clientAddress = clientAddress.trim(),
                                 clientCityStateZip = clientCityStateZip.trim(),
@@ -257,6 +260,9 @@ fun InvoiceEditScreen(
                                 Text(clientName, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                 if (clientCompany.isNotBlank()) Text(clientCompany, fontSize = 13.sp)
                                 Text(clientEmail, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (clientEmail2.isNotBlank()) {
+                                    Text("2nd Recipient: $clientEmail2", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
                         }
                     }
@@ -279,10 +285,24 @@ fun InvoiceEditScreen(
                     OutlinedTextField(
                         value = clientEmail,
                         onValueChange = { clientEmail = it },
-                        label = { Text("Client Email") },
+                        label = { Text("Client Email (Primary)") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("invoice_client_email_input"),
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = clientEmail2,
+                        onValueChange = { clientEmail2 = it },
+                        label = { Text("Secondary Invoice Email (Send to 2nd person)") },
+                        placeholder = { Text("e.g. accounts2@company.co.za or manager@company.co.za") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("invoice_client_email2_input"),
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp)
                     )
@@ -380,7 +400,7 @@ fun InvoiceEditScreen(
                         OutlinedTextField(
                             value = inviteNumber,
                             onValueChange = { inviteNumber = it },
-                            label = { Text("Job Invite #") },
+                            label = { Text("Job Invite # (Optional)") },
                             placeholder = { Text("e.g. INVITE-101") },
                             modifier = Modifier
                                 .weight(1f)
@@ -507,10 +527,11 @@ fun InvoiceEditScreen(
                 selectedClientId = client.id
                 clientName = client.name
                 clientCompany = client.company
-                clientEmail = client.emailForInvoices
+                clientEmail = client.effectiveInvoiceEmail
+                clientEmail2 = client.invoiceEmail2
                 clientPhone = client.phone
                 clientAddress = client.address
-                clientCityStateZip = client.cityStateZip
+                clientCityStateZip = client.fullAddress.ifBlank { client.cityStateZip }
                 showClientPicker = false
             },
             onAddNewClient = {

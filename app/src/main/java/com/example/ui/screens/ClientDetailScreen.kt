@@ -167,22 +167,96 @@ fun ClientDetailScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                     Spacer(Modifier.height(14.dp))
 
-                    // Contact rows
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                try {
-                                    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.email}"))
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {}
+                    // Contact emails
+                    if (client.email.isNotBlank()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.email}"))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                                .padding(vertical = 3.dp)
+                        ) {
+                            Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Text("Primary Email", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(client.email, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                             }
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(10.dp))
-                        Text(client.email, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+
+                    if (client.quoteEmail.isNotBlank() && client.quoteEmail != client.email) {
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.quoteEmail}"))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                                .padding(vertical = 3.dp)
+                        ) {
+                            Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Text("Quotes Email", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                                Text(client.quoteEmail, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                    }
+
+                    if (client.invoiceEmail.isNotBlank() && client.invoiceEmail != client.email) {
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.invoiceEmail}"))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                                .padding(vertical = 3.dp)
+                        ) {
+                            Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Text("Invoices Email #1", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(client.invoiceEmail, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                    }
+
+                    if (client.invoiceEmail2.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${client.invoiceEmail2}"))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                                .padding(vertical = 3.dp)
+                        ) {
+                            Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Text("Invoices Email #2 (2nd Recipient)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(client.invoiceEmail2, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
                     }
 
                     if (client.quoteEmail.isNotBlank()) {

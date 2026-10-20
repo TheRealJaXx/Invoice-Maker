@@ -11,10 +11,6 @@ import java.io.File
 
 object EmailHelper {
 
-    /** Splits "a@x.com, b@y.com; c@z.com" into separate recipients. */
-    private fun recipients(raw: String): Array<String> =
-        raw.split(',', ';', '\n').map { it.trim() }.filter { it.isNotEmpty() }.toTypedArray()
-
     fun sendInvoiceEmail(context: Context, invoice: Invoice, profile: FreelancerProfile): Boolean {
         return try {
             val pdfFile = PdfGenerator.generateInvoicePdf(context, invoice, profile)
@@ -24,7 +20,13 @@ object EmailHelper {
                 pdfFile
             )
 
-            val subject = "Invoice ${invoice.invoiceNumber} from ${profile.businessName}"
+            val senderName = if (profile.isIndividual) {
+                profile.ownerName.ifBlank { "Freelance Professional" }
+            } else {
+                profile.businessName.ifBlank { profile.ownerName }
+            }
+
+            val subject = "Invoice ${invoice.invoiceNumber} from $senderName"
             val bodyBuilder = StringBuilder().apply {
                 append("Dear ${invoice.clientName},\n\n")
                 append("Please find attached invoice ${invoice.invoiceNumber} ")
@@ -40,20 +42,32 @@ object EmailHelper {
                 }
                 append("Thank you for your business!\n\n")
                 append("Best regards,\n")
-                append("${profile.ownerName}\n")
-                append(profile.businessName)
+                append(profile.ownerName)
+                if (!profile.isIndividual && profile.businessName.isNotBlank()) {
+                    append("\n${profile.businessName}")
+                }
             }
+
+            val recipients = listOf(invoice.clientEmail, invoice.clientEmail2).filter { it.isNotBlank() }
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
-                putExtra(Intent.EXTRA_EMAIL, recipients(invoice.clientEmail))
+                if (recipients.isNotEmpty()) {
+                    putExtra(Intent.EXTRA_EMAIL, recipients.toTypedArray())
+                }
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(Intent.EXTRA_TEXT, bodyBuilder.toString())
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            val chooser = Intent.createChooser(shareIntent, "Send Invoice to ${invoice.clientName}")
+            val recipientDisplay = if (recipients.size > 1) {
+                "${invoice.clientName} (2 recipients)"
+            } else {
+                invoice.clientName
+            }
+
+            val chooser = Intent.createChooser(shareIntent, "Send Invoice to $recipientDisplay")
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             context.startActivity(chooser)
@@ -73,7 +87,13 @@ object EmailHelper {
                 pdfFile
             )
 
-            val subject = "Quote ${quote.quoteNumber} from ${profile.businessName}"
+            val senderName = if (profile.isIndividual) {
+                profile.ownerName.ifBlank { "Freelance Professional" }
+            } else {
+                profile.businessName.ifBlank { profile.ownerName }
+            }
+
+            val subject = "Quote ${quote.quoteNumber} from $senderName"
             val bodyBuilder = StringBuilder().apply {
                 append("Dear ${quote.clientName},\n\n")
                 append("Thank you for the opportunity to submit our proposal")
@@ -89,13 +109,19 @@ object EmailHelper {
                 }
                 append("Please let me know if you have any questions or would like to proceed.\n\n")
                 append("Best regards,\n")
-                append("${profile.ownerName}\n")
-                append(profile.businessName)
+                append(profile.ownerName)
+                if (!profile.isIndividual && profile.businessName.isNotBlank()) {
+                    append("\n${profile.businessName}")
+                }
             }
+
+            val recipients = listOf(quote.clientEmail, quote.clientEmail2).filter { it.isNotBlank() }
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
-                putExtra(Intent.EXTRA_EMAIL, recipients(quote.clientEmail))
+                if (recipients.isNotEmpty()) {
+                    putExtra(Intent.EXTRA_EMAIL, recipients.toTypedArray())
+                }
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(Intent.EXTRA_TEXT, bodyBuilder.toString())
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -123,11 +149,13 @@ object EmailHelper {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, "application/pdf")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            context.startActivity(Intent.createChooser(intent, "Open PDF"))
+            val chooser = Intent.createChooser(intent, "Open PDF")
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            context.startActivity(chooser)
         } catch (e: Exception) {
-            Toast.makeText(context, "No PDF viewer app found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Could not open PDF viewer: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 }

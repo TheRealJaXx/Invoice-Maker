@@ -266,7 +266,7 @@ fun InvoiceDetailScreen(
                     if (invoice.inviteNumber.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Row {
-                            Text("Job Invite Ref: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Job Invite: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(invoice.inviteNumber, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                         }
                     }
@@ -296,7 +296,12 @@ fun InvoiceDetailScreen(
                     if (invoice.clientCompany.isNotBlank()) {
                         Text(invoice.clientCompany, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text(invoice.clientEmail, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (invoice.clientEmail.isNotBlank()) {
+                        Text(invoice.clientEmail, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    if (invoice.clientEmail2.isNotBlank()) {
+                        Text("2nd Recipient: ${invoice.clientEmail2}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    }
                     if (invoice.clientPhone.isNotBlank()) {
                         Text(invoice.clientPhone, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

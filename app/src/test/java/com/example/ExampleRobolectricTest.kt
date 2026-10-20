@@ -200,4 +200,48 @@ class ExampleRobolectricTest {
         assertTrue(lines[1].contains("15 Oct 2026"))
         assertTrue(lines[2].contains("18 Oct 2026"))
     }
+
+    @Test
+    fun clientDedicatedEmailsAndDualInvoiceRecipientsTest() = runBlocking {
+        val client = Client(
+            name = "Settlers Media Pty Ltd",
+            address = "93 1st Avenue",
+            suburb = "Fontainebleau",
+            city = "Randburg",
+            postalCode = "2194",
+            vatNo = "4460266721",
+            regNo = "2014/082117/07",
+            email = "info@settlersmedia.co.za",
+            quoteEmail = "producer@settlersmedia.co.za",
+            invoiceEmail = "accounts@settlersmedia.co.za",
+            invoiceEmail2 = "manager@settlersmedia.co.za",
+            phone = "(072) 052 2463"
+        )
+
+        assertEquals("producer@settlersmedia.co.za", client.effectiveQuoteEmail)
+        assertEquals("accounts@settlersmedia.co.za", client.effectiveInvoiceEmail)
+        assertEquals("manager@settlersmedia.co.za", client.invoiceEmail2)
+
+        val clientId = repository.insertClient(client)
+        val quoteId = repository.insertQuote(
+            Quote(
+                quoteNumber = "EST-801",
+                inviteNumber = "INVITE-55",
+                clientId = clientId,
+                clientName = client.name,
+                clientEmail = client.effectiveQuoteEmail,
+                clientEmail2 = "",
+                itemsJson = "[]",
+                subtotal = 5000.0,
+                total = 5000.0
+            )
+        )
+
+        val invoice = repository.convertQuoteToInvoice(quoteId, "PO-999")
+        assertNotNull(invoice)
+        assertEquals("accounts@settlersmedia.co.za", invoice!!.clientEmail)
+        assertEquals("manager@settlersmedia.co.za", invoice.clientEmail2)
+        assertEquals("4460266721", invoice.clientVatNo)
+        assertEquals("2014/082117/07", invoice.clientRegNo)
+    }
 }

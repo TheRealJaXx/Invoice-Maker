@@ -13,12 +13,13 @@ data class Client(
     val suburb: String = "",               // Suburb / Area (e.g. Fontainebleau)
     val city: String = "",                 // City (e.g. Randburg)
     val postalCode: String = "",           // Postal Code (e.g. 2194)
-    val cityStateZip: String = "",         // Legacy combined address
+    val cityStateZip: String = "",         // Combined address
     val vatNo: String = "",                // VAT Number (e.g. 4460266721)
     val regNo: String = "",                // Registration Number (e.g. 2014/082117/07)
-    val email: String = "",                // Default contact email (e.g. thresini@settlersmedia.co.za)
-    val quoteEmail: String = "",           // Optional: where quotes go (overrides email). Comma-separate multiple.
-    val invoiceEmail: String = "",         // Optional: where invoices go (overrides email). Comma-separate multiple.
+    val email: String = "",                // Primary / General Contact Email
+    val quoteEmail: String = "",           // Email for Quotes (e.g. quote recipient)
+    val invoiceEmail: String = "",         // Email for Invoices #1 (e.g. billing recipient)
+    val invoiceEmail2: String = "",        // Email for Invoices #2 (when invoices must go to 2 different people)
     val phone: String = "",                // Contact Phone (e.g. (072) 052 2463)
     val notes: String = "",                // Internal notes
     val createdAt: Long = System.currentTimeMillis()
@@ -27,16 +28,16 @@ data class Client(
         get() = when {
             name.isNotBlank() -> name
             company.isNotBlank() -> company
+            invoiceEmail.isNotBlank() -> invoiceEmail
+            quoteEmail.isNotBlank() -> quoteEmail
             email.isNotBlank() -> email
             else -> "Client"
         }
 
-    /** Recipient(s) for quotes: quoteEmail if set, otherwise the default email. */
-    val emailForQuotes: String
+    val effectiveQuoteEmail: String
         get() = quoteEmail.ifBlank { email }
 
-    /** Recipient(s) for invoices: invoiceEmail if set, otherwise the default email. */
-    val emailForInvoices: String
+    val effectiveInvoiceEmail: String
         get() = invoiceEmail.ifBlank { email }
 
     val fullAddress: String
@@ -57,6 +58,7 @@ data class Client(
                 parts.size >= 2 -> "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${parts[1].firstOrNull()?.uppercaseChar() ?: ""}"
                 textToUse.isNotBlank() -> textToUse.take(2).uppercase()
                 email.isNotBlank() -> email.take(2).uppercase()
+                invoiceEmail.isNotBlank() -> invoiceEmail.take(2).uppercase()
                 else -> "CL"
             }
         }

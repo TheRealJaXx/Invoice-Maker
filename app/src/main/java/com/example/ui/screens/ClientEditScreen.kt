@@ -70,6 +70,7 @@ fun ClientEditScreen(
     var email by remember { mutableStateOf(client?.email ?: "") }
     var quoteEmail by remember { mutableStateOf(client?.quoteEmail ?: "") }
     var invoiceEmail by remember { mutableStateOf(client?.invoiceEmail ?: "") }
+    var invoiceEmail2 by remember { mutableStateOf(client?.invoiceEmail2 ?: "") }
     var phone by remember { mutableStateOf(client?.phone ?: "") }
 
     // Additional notes
@@ -105,6 +106,7 @@ fun ClientEditScreen(
                                 email = email.trim(),
                                 quoteEmail = quoteEmail.trim(),
                                 invoiceEmail = invoiceEmail.trim(),
+                                invoiceEmail2 = invoiceEmail2.trim(),
                                 phone = phone.trim(),
                                 notes = notes.trim(),
                                 createdAt = client?.createdAt ?: System.currentTimeMillis()
@@ -275,20 +277,27 @@ fun ClientEditScreen(
                         Icon(Icons.Default.ContactMail, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "Contact:",
+                            text = "Contact & Email Routing:",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Text(
+                        text = "Set primary contact, or specify separate emails for quotes and invoices (including 2 recipients for invoices).",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     Spacer(Modifier.height(14.dp))
 
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email Address (default)") },
+                        label = { Text("Primary Email Address") },
                         placeholder = { Text("e.g. thresini@settlersmedia.co.za") },
-                        supportingText = { Text("Used for quotes and invoices unless you set separate ones below") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_email_input"),
@@ -301,9 +310,8 @@ fun ClientEditScreen(
                     OutlinedTextField(
                         value = quoteEmail,
                         onValueChange = { quoteEmail = it },
-                        label = { Text("Quotes go to (optional)") },
-                        placeholder = { Text("Leave blank to use default email") },
-                        supportingText = { Text("Separate multiple addresses with commas") },
+                        label = { Text("Quotes Email (if different)") },
+                        placeholder = { Text("e.g. quotes@settlersmedia.co.za") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_quote_email_input"),
@@ -316,12 +324,25 @@ fun ClientEditScreen(
                     OutlinedTextField(
                         value = invoiceEmail,
                         onValueChange = { invoiceEmail = it },
-                        label = { Text("Invoices go to (optional)") },
-                        placeholder = { Text("Leave blank to use default email") },
-                        supportingText = { Text("Separate multiple addresses with commas") },
+                        label = { Text("Invoices Email #1 (Accounts / Billing)") },
+                        placeholder = { Text("e.g. accounts@settlersmedia.co.za") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_invoice_email_input"),
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    OutlinedTextField(
+                        value = invoiceEmail2,
+                        onValueChange = { invoiceEmail2 = it },
+                        label = { Text("Invoices Email #2 (2nd Person to Receive Invoices)") },
+                        placeholder = { Text("e.g. finance.manager@settlersmedia.co.za") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("client_invoice_email2_input"),
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp)
                     )

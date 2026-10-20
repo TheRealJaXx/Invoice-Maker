@@ -48,8 +48,6 @@ object DataBackupHelper {
                 put("vatNo", c.vatNo)
                 put("regNo", c.regNo)
                 put("email", c.email)
-                put("quoteEmail", c.quoteEmail)
-                put("invoiceEmail", c.invoiceEmail)
                 put("phone", c.phone)
                 put("notes", c.notes)
             }
@@ -111,6 +109,7 @@ object DataBackupHelper {
                             email = email,
                             quoteEmail = item.optString("quoteEmail", ""),
                             invoiceEmail = item.optString("invoiceEmail", ""),
+                            invoiceEmail2 = item.optString("invoiceEmail2", ""),
                             phone = item.optString("phone", ""),
                             notes = item.optString("notes", "")
                         )
@@ -239,6 +238,7 @@ object DataBackupHelper {
                     put("email", c.email)
                     put("quoteEmail", c.quoteEmail)
                     put("invoiceEmail", c.invoiceEmail)
+                    put("invoiceEmail2", c.invoiceEmail2)
                     put("phone", c.phone)
                     put("notes", c.notes)
                 }
@@ -261,6 +261,7 @@ object DataBackupHelper {
                     put("clientName", inv.clientName)
                     put("clientCompany", inv.clientCompany)
                     put("clientEmail", inv.clientEmail)
+                    put("clientEmail2", inv.clientEmail2)
                     put("clientPhone", inv.clientPhone)
                     put("clientAddress", inv.clientAddress)
                     put("clientCityStateZip", inv.clientCityStateZip)
@@ -292,6 +293,7 @@ object DataBackupHelper {
                     put("clientName", q.clientName)
                     put("clientCompany", q.clientCompany)
                     put("clientEmail", q.clientEmail)
+                    put("clientEmail2", q.clientEmail2)
                     put("clientPhone", q.clientPhone)
                     put("clientAddress", q.clientAddress)
                     put("clientCityStateZip", q.clientCityStateZip)
@@ -334,6 +336,7 @@ object DataBackupHelper {
                     clientName = obj.optString("clientName", ""),
                     clientCompany = obj.optString("clientCompany", ""),
                     clientEmail = obj.optString("clientEmail", ""),
+                    clientEmail2 = obj.optString("clientEmail2", ""),
                     clientPhone = obj.optString("clientPhone", ""),
                     clientAddress = obj.optString("clientAddress", ""),
                     clientCityStateZip = obj.optString("clientCityStateZip", ""),
@@ -365,6 +368,7 @@ object DataBackupHelper {
                     clientName = obj.optString("clientName", ""),
                     clientCompany = obj.optString("clientCompany", ""),
                     clientEmail = obj.optString("clientEmail", ""),
+                    clientEmail2 = obj.optString("clientEmail2", ""),
                     clientPhone = obj.optString("clientPhone", ""),
                     clientAddress = obj.optString("clientAddress", ""),
                     clientCityStateZip = obj.optString("clientCityStateZip", ""),

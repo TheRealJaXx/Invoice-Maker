@@ -16,6 +16,7 @@ data class Invoice(
     val clientName: String = "",
     val clientCompany: String = "",
     val clientEmail: String = "",
+    val clientEmail2: String = "",
     val clientPhone: String = "",
     val clientAddress: String = "",
     val clientSuburb: String = "",
