@@ -264,8 +264,14 @@ object DataBackupHelper {
                     put("clientEmail2", inv.clientEmail2)
                     put("clientPhone", inv.clientPhone)
                     put("clientAddress", inv.clientAddress)
+                    put("clientSuburb", inv.clientSuburb)
+                    put("clientCity", inv.clientCity)
+                    put("clientPostalCode", inv.clientPostalCode)
                     put("clientCityStateZip", inv.clientCityStateZip)
+                    put("clientVatNo", inv.clientVatNo)
+                    put("clientRegNo", inv.clientRegNo)
                     put("issueDate", inv.issueDate)
+                    put("hasDueDate", inv.hasDueDate)
                     put("dueDate", inv.dueDate)
                     put("itemsJson", inv.itemsJson)
                     put("subtotal", inv.subtotal)
@@ -296,7 +302,12 @@ object DataBackupHelper {
                     put("clientEmail2", q.clientEmail2)
                     put("clientPhone", q.clientPhone)
                     put("clientAddress", q.clientAddress)
+                    put("clientSuburb", q.clientSuburb)
+                    put("clientCity", q.clientCity)
+                    put("clientPostalCode", q.clientPostalCode)
                     put("clientCityStateZip", q.clientCityStateZip)
+                    put("clientVatNo", q.clientVatNo)
+                    put("clientRegNo", q.clientRegNo)
                     put("issueDate", q.issueDate)
                     put("expiryDate", q.expiryDate)
                     put("itemsJson", q.itemsJson)
@@ -339,8 +350,14 @@ object DataBackupHelper {
                     clientEmail2 = obj.optString("clientEmail2", ""),
                     clientPhone = obj.optString("clientPhone", ""),
                     clientAddress = obj.optString("clientAddress", ""),
+                    clientSuburb = obj.optString("clientSuburb", ""),
+                    clientCity = obj.optString("clientCity", ""),
+                    clientPostalCode = obj.optString("clientPostalCode", ""),
                     clientCityStateZip = obj.optString("clientCityStateZip", ""),
+                    clientVatNo = obj.optString("clientVatNo", ""),
+                    clientRegNo = obj.optString("clientRegNo", ""),
                     issueDate = obj.optLong("issueDate", System.currentTimeMillis()),
+                    hasDueDate = obj.optBoolean("hasDueDate", true),
                     dueDate = obj.optLong("dueDate", System.currentTimeMillis() + 14L * 86400000),
                     itemsJson = obj.optString("itemsJson", "[]"),
                     subtotal = obj.optDouble("subtotal", 0.0),
@@ -371,7 +388,12 @@ object DataBackupHelper {
                     clientEmail2 = obj.optString("clientEmail2", ""),
                     clientPhone = obj.optString("clientPhone", ""),
                     clientAddress = obj.optString("clientAddress", ""),
+                    clientSuburb = obj.optString("clientSuburb", ""),
+                    clientCity = obj.optString("clientCity", ""),
+                    clientPostalCode = obj.optString("clientPostalCode", ""),
                     clientCityStateZip = obj.optString("clientCityStateZip", ""),
+                    clientVatNo = obj.optString("clientVatNo", ""),
+                    clientRegNo = obj.optString("clientRegNo", ""),
                     issueDate = obj.optLong("issueDate", System.currentTimeMillis()),
                     expiryDate = obj.optLong("expiryDate", System.currentTimeMillis() + 30L * 86400000),
                     itemsJson = obj.optString("itemsJson", "[]"),

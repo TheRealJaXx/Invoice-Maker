@@ -7,20 +7,20 @@ import androidx.room.PrimaryKey
 data class Client(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val name: String = "",                 // Name / Company (e.g. Settlers Media Pty Ltd)
+    val name: String = "",                 // Name / Company (e.g. Acme Corporation)
     val company: String = "",              // Secondary Company / Trading Name
-    val address: String = "",              // Street Address (e.g. 93 1st Avenue)
-    val suburb: String = "",               // Suburb / Area (e.g. Fontainebleau)
-    val city: String = "",                 // City (e.g. Randburg)
-    val postalCode: String = "",           // Postal Code (e.g. 2194)
+    val address: String = "",              // Street Address (e.g. 123 Main Street)
+    val suburb: String = "",               // Suburb / Area (e.g. Downtown)
+    val city: String = "",                 // City (e.g. Metropolis)
+    val postalCode: String = "",           // Postal Code (e.g. 10001)
     val cityStateZip: String = "",         // Combined address
-    val vatNo: String = "",                // VAT Number (e.g. 4460266721)
-    val regNo: String = "",                // Registration Number (e.g. 2014/082117/07)
+    val vatNo: String = "",                // VAT Number (e.g. 1234567890)
+    val regNo: String = "",                // Registration Number (e.g. 2020/123456/07)
     val email: String = "",                // Primary / General Contact Email
-    val quoteEmail: String = "",           // Email for Quotes (e.g. quote recipient)
-    val invoiceEmail: String = "",         // Email for Invoices #1 (e.g. billing recipient)
+    val quoteEmail: String = "",           // Email for Quotes
+    val invoiceEmail: String = "",         // Email for Invoices #1
     val invoiceEmail2: String = "",        // Email for Invoices #2 (when invoices must go to 2 different people)
-    val phone: String = "",                // Contact Phone (e.g. (072) 052 2463)
+    val phone: String = "",                // Contact Phone (e.g. +1 555-0100)
     val notes: String = "",                // Internal notes
     val createdAt: Long = System.currentTimeMillis()
 ) {

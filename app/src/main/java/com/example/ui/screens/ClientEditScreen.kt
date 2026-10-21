@@ -161,7 +161,7 @@ fun ClientEditScreen(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text("Name / Company") },
-                        placeholder = { Text("e.g. Settlers Media Pty Ltd") },
+                        placeholder = { Text("Company name") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_name_input"),
@@ -175,7 +175,7 @@ fun ClientEditScreen(
                         value = address,
                         onValueChange = { address = it },
                         label = { Text("Address (Street)") },
-                        placeholder = { Text("e.g. 93 1st Avenue") },
+                        placeholder = { Text("Street address") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_address_input"),
@@ -193,7 +193,7 @@ fun ClientEditScreen(
                             value = suburb,
                             onValueChange = { suburb = it },
                             label = { Text("Suburb") },
-                            placeholder = { Text("e.g. Fontainebleau") },
+                            placeholder = { Text("Suburb") },
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("client_suburb_input"),
@@ -205,7 +205,7 @@ fun ClientEditScreen(
                             value = city,
                             onValueChange = { city = it },
                             label = { Text("City") },
-                            placeholder = { Text("e.g. Randburg") },
+                            placeholder = { Text("City") },
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("client_city_input"),
@@ -220,7 +220,7 @@ fun ClientEditScreen(
                         value = postalCode,
                         onValueChange = { postalCode = it },
                         label = { Text("Postal Code") },
-                        placeholder = { Text("e.g. 2194") },
+                        placeholder = { Text("Postal code") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_postal_code_input"),
@@ -238,7 +238,7 @@ fun ClientEditScreen(
                             value = vatNo,
                             onValueChange = { vatNo = it },
                             label = { Text("VAT No") },
-                            placeholder = { Text("e.g. 4460266721") },
+                            placeholder = { Text("VAT number") },
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("client_vat_no_input"),
@@ -250,7 +250,7 @@ fun ClientEditScreen(
                             value = regNo,
                             onValueChange = { regNo = it },
                             label = { Text("Reg No") },
-                            placeholder = { Text("e.g. 2014/082117/07") },
+                            placeholder = { Text("Registration number") },
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("client_reg_no_input"),
@@ -297,7 +297,7 @@ fun ClientEditScreen(
                         value = email,
                         onValueChange = { email = it },
                         label = { Text("Primary Email Address") },
-                        placeholder = { Text("e.g. thresini@settlersmedia.co.za") },
+                        placeholder = { Text("Company email") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_email_input"),
@@ -311,7 +311,7 @@ fun ClientEditScreen(
                         value = quoteEmail,
                         onValueChange = { quoteEmail = it },
                         label = { Text("Quotes Email (if different)") },
-                        placeholder = { Text("e.g. quotes@settlersmedia.co.za") },
+                        placeholder = { Text("Quotes email") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_quote_email_input"),
@@ -325,7 +325,7 @@ fun ClientEditScreen(
                         value = invoiceEmail,
                         onValueChange = { invoiceEmail = it },
                         label = { Text("Invoices Email #1 (Accounts / Billing)") },
-                        placeholder = { Text("e.g. accounts@settlersmedia.co.za") },
+                        placeholder = { Text("Company email") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_invoice_email_input"),
@@ -339,7 +339,7 @@ fun ClientEditScreen(
                         value = invoiceEmail2,
                         onValueChange = { invoiceEmail2 = it },
                         label = { Text("Invoices Email #2 (2nd Person to Receive Invoices)") },
-                        placeholder = { Text("e.g. finance.manager@settlersmedia.co.za") },
+                        placeholder = { Text("Second invoice email") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_invoice_email2_input"),
@@ -353,7 +353,7 @@ fun ClientEditScreen(
                         value = phone,
                         onValueChange = { phone = it },
                         label = { Text("Phone Number") },
-                        placeholder = { Text("e.g. (072) 052 2463") },
+                        placeholder = { Text("Phone number") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("client_phone_input"),

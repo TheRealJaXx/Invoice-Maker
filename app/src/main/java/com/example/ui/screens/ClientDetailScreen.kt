@@ -461,7 +461,9 @@ fun ClientDetailScreen(
                                         Spacer(Modifier.width(8.dp))
                                         StatusBadge(status = invoice.status)
                                     }
-                                    Text("Due: ${Formatters.formatDate(invoice.dueDate)}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    if (invoice.hasDueDate) {
+                                        Text("Due: ${Formatters.formatDate(invoice.dueDate)}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
                                 }
                                 Text(Formatters.formatCurrency(invoice.total, currency), fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             }

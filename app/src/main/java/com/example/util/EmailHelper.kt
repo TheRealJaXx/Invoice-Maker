@@ -34,7 +34,9 @@ object EmailHelper {
                     append("(PO Ref: ${invoice.poNumber}) ")
                 }
                 append("for the total amount of ${Formatters.formatCurrency(invoice.total, profile.currencySymbol)}.\n\n")
-                append("Due Date: ${Formatters.formatDate(invoice.dueDate)}\n\n")
+                if (invoice.hasDueDate) {
+                    append("Due Date: ${Formatters.formatDate(invoice.dueDate)}\n\n")
+                }
                 if (invoice.paymentInstructions.isNotBlank()) {
                     append("Payment Instructions:\n${invoice.paymentInstructions}\n\n")
                 } else if (profile.paymentInstructions.isNotBlank()) {

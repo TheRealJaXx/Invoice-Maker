@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.local.AppDatabase
 import com.example.data.model.Client
+import com.example.data.model.Invoice
 import com.example.data.model.LineItem
 import com.example.data.model.LineItemConverter
 import com.example.data.model.Quote
@@ -136,12 +137,12 @@ class ExampleRobolectricTest {
     fun clientExportAndImportTest() {
         val client = Client(
             id = 1L,
-            name = "SuperSport Media",
-            company = "MultiChoice Africa",
-            email = "broadcast@multichoice.co.za",
-            phone = "+27 11 289 3000",
-            address = "Randburg Broadcasting Hub",
-            cityStateZip = "Johannesburg, 2194",
+            name = "Broadcast Media",
+            company = "Network Africa",
+            email = "broadcast@networkafrica.example.com",
+            phone = "+27 11 555 0100",
+            address = "Media Broadcasting Hub",
+            cityStateZip = "Johannesburg, 2000",
             notes = "Net 30 terms"
         )
 
@@ -149,32 +150,32 @@ class ExampleRobolectricTest {
         val json = com.example.util.DataBackupHelper.exportClientsToJson(listOf(client))
         val importedFromJson = com.example.util.DataBackupHelper.importClientsFromJson(json)
         assertEquals(1, importedFromJson.size)
-        assertEquals("SuperSport Media", importedFromJson[0].name)
-        assertEquals("MultiChoice Africa", importedFromJson[0].company)
-        assertEquals("broadcast@multichoice.co.za", importedFromJson[0].email)
+        assertEquals("Broadcast Media", importedFromJson[0].name)
+        assertEquals("Network Africa", importedFromJson[0].company)
+        assertEquals("broadcast@networkafrica.example.com", importedFromJson[0].email)
 
         // CSV Export & Import
         val csv = com.example.util.DataBackupHelper.exportClientsToCsv(listOf(client))
         val importedFromCsv = com.example.util.DataBackupHelper.importClientsFromCsv(csv)
         assertEquals(1, importedFromCsv.size)
-        assertEquals("SuperSport Media", importedFromCsv[0].name)
-        assertEquals("MultiChoice Africa", importedFromCsv[0].company)
-        assertEquals("broadcast@multichoice.co.za", importedFromCsv[0].email)
+        assertEquals("Broadcast Media", importedFromCsv[0].name)
+        assertEquals("Network Africa", importedFromCsv[0].company)
+        assertEquals("broadcast@networkafrica.example.com", importedFromCsv[0].email)
     }
 
     @Test
     fun individualEntityTypeOmitCompanyNameTest() {
         val individualProfile = com.example.data.model.FreelancerProfile(
             entityType = "INDIVIDUAL",
-            businessName = "Settlers Media Pty Ltd",
-            ownerName = "Jacques Du Plessis"
+            businessName = "Apex Media Productions",
+            ownerName = "Alex Morgan"
         )
         assertTrue(individualProfile.isIndividual)
 
         val companyProfile = com.example.data.model.FreelancerProfile(
             entityType = "COMPANY",
-            businessName = "Settlers Media Pty Ltd",
-            ownerName = "Jacques Du Plessis"
+            businessName = "Apex Media Productions",
+            ownerName = "Alex Morgan"
         )
         org.junit.Assert.assertFalse(companyProfile.isIndividual)
     }
@@ -204,23 +205,23 @@ class ExampleRobolectricTest {
     @Test
     fun clientDedicatedEmailsAndDualInvoiceRecipientsTest() = runBlocking {
         val client = Client(
-            name = "Settlers Media Pty Ltd",
-            address = "93 1st Avenue",
-            suburb = "Fontainebleau",
-            city = "Randburg",
-            postalCode = "2194",
-            vatNo = "4460266721",
-            regNo = "2014/082117/07",
-            email = "info@settlersmedia.co.za",
-            quoteEmail = "producer@settlersmedia.co.za",
-            invoiceEmail = "accounts@settlersmedia.co.za",
-            invoiceEmail2 = "manager@settlersmedia.co.za",
-            phone = "(072) 052 2463"
+            name = "Apex Media Productions",
+            address = "123 Sample Avenue",
+            suburb = "Sample Hills",
+            city = "Sample City",
+            postalCode = "10001",
+            vatNo = "4999999999",
+            regNo = "2020/999999/07",
+            email = "info@apexmedia.example.com",
+            quoteEmail = "producer@apexmedia.example.com",
+            invoiceEmail = "accounts@apexmedia.example.com",
+            invoiceEmail2 = "manager@apexmedia.example.com",
+            phone = "+1 555-0199"
         )
 
-        assertEquals("producer@settlersmedia.co.za", client.effectiveQuoteEmail)
-        assertEquals("accounts@settlersmedia.co.za", client.effectiveInvoiceEmail)
-        assertEquals("manager@settlersmedia.co.za", client.invoiceEmail2)
+        assertEquals("producer@apexmedia.example.com", client.effectiveQuoteEmail)
+        assertEquals("accounts@apexmedia.example.com", client.effectiveInvoiceEmail)
+        assertEquals("manager@apexmedia.example.com", client.invoiceEmail2)
 
         val clientId = repository.insertClient(client)
         val quoteId = repository.insertQuote(
@@ -239,9 +240,51 @@ class ExampleRobolectricTest {
 
         val invoice = repository.convertQuoteToInvoice(quoteId, "PO-999")
         assertNotNull(invoice)
-        assertEquals("accounts@settlersmedia.co.za", invoice!!.clientEmail)
-        assertEquals("manager@settlersmedia.co.za", invoice.clientEmail2)
-        assertEquals("4460266721", invoice.clientVatNo)
-        assertEquals("2014/082117/07", invoice.clientRegNo)
+        assertEquals("accounts@apexmedia.example.com", invoice!!.clientEmail)
+        assertEquals("manager@apexmedia.example.com", invoice.clientEmail2)
+        assertEquals("4999999999", invoice.clientVatNo)
+        assertEquals("2020/999999/07", invoice.clientRegNo)
+        assertEquals("123 Sample Avenue", invoice.clientAddress)
+        assertEquals("Sample Hills", invoice.clientSuburb)
+        assertEquals("Sample City", invoice.clientCity)
+        assertEquals("10001", invoice.clientPostalCode)
+    }
+
+    @Test
+    fun invoiceHasDueDateAndBackupTest() {
+        val invoiceNoDue = Invoice(
+            id = 10L,
+            invoiceNumber = "INV-100",
+            invoiceSequence = 100,
+            hasDueDate = false,
+            dueDate = 0L
+        )
+        org.junit.Assert.assertFalse(invoiceNoDue.hasDueDate)
+
+        val fullBackupJson = com.example.util.DataBackupHelper.exportFullBackupToJson(
+            emptyList(),
+            listOf(invoiceNoDue),
+            emptyList(),
+            com.example.data.model.FreelancerProfile()
+        )
+        val parsed = com.example.util.DataBackupHelper.parseFullBackupFromJson(fullBackupJson)
+        assertEquals(1, parsed.invoices.size)
+        org.junit.Assert.assertFalse(parsed.invoices[0].hasDueDate)
+    }
+
+    @Test
+    fun pdfDateExpansionTest() {
+        val rangeItem = LineItem(
+            project = "Championship Series",
+            service = "Lead Audio Engineer",
+            dateMode = "RANGE",
+            startDate = "14 Oct 2026",
+            endDate = "16 Oct 2026"
+        )
+        val expanded = com.example.util.PdfGenerator.expandDates(rangeItem)
+        assertEquals(3, expanded.size)
+        assertEquals("14 Oct 2026", expanded[0])
+        assertEquals("15 Oct 2026", expanded[1])
+        assertEquals("16 Oct 2026", expanded[2])
     }
 }

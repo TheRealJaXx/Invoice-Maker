@@ -176,7 +176,6 @@ fun FreelanceApp(viewModel: FreelanceViewModel) {
                         clients = clients,
                         profile = profile,
                         onNavigate = { viewModel.navigateTo(it) },
-                        onOpenJobInvite = { viewModel.openJobInviteDialog() },
                         onConvertQuote = { viewModel.openConvertQuoteDialog(it) }
                     )
                 }

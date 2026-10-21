@@ -251,9 +251,11 @@ fun InvoiceDetailScreen(
                             Text("Issue Date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(Formatters.formatDate(invoice.issueDate), fontWeight = FontWeight.Medium, fontSize = 13.sp)
                         }
-                        Column {
-                            Text("Due Date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(Formatters.formatDate(invoice.dueDate), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = if (invoice.status == "Overdue") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
+                        if (invoice.hasDueDate) {
+                            Column {
+                                Text("Due Date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(Formatters.formatDate(invoice.dueDate), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = if (invoice.status == "Overdue") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
+                            }
                         }
                         if (invoice.poNumber.isNotBlank()) {
                             Column {

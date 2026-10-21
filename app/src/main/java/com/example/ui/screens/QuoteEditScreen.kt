@@ -81,9 +81,15 @@ fun QuoteEditScreen(
     var clientName by remember { mutableStateOf(existingQuote?.clientName ?: "") }
     var clientCompany by remember { mutableStateOf(existingQuote?.clientCompany ?: "") }
     var clientEmail by remember { mutableStateOf(existingQuote?.clientEmail ?: "") }
+    var clientEmail2 by remember { mutableStateOf(existingQuote?.clientEmail2 ?: "") }
     var clientPhone by remember { mutableStateOf(existingQuote?.clientPhone ?: "") }
     var clientAddress by remember { mutableStateOf(existingQuote?.clientAddress ?: "") }
+    var clientSuburb by remember { mutableStateOf(existingQuote?.clientSuburb ?: "") }
+    var clientCity by remember { mutableStateOf(existingQuote?.clientCity ?: "") }
+    var clientPostalCode by remember { mutableStateOf(existingQuote?.clientPostalCode ?: "") }
     var clientCityStateZip by remember { mutableStateOf(existingQuote?.clientCityStateZip ?: "") }
+    var clientVatNo by remember { mutableStateOf(existingQuote?.clientVatNo ?: "") }
+    var clientRegNo by remember { mutableStateOf(existingQuote?.clientRegNo ?: "") }
 
     LaunchedEffect(initialClientId, clients) {
         if (existingQuote == null && initialClientId != null && initialClientId > 0) {
@@ -92,9 +98,15 @@ fun QuoteEditScreen(
                 clientName = cl.name
                 clientCompany = cl.company
                 clientEmail = cl.effectiveQuoteEmail
+                clientEmail2 = cl.invoiceEmail2
                 clientPhone = cl.phone
                 clientAddress = cl.address
+                clientSuburb = cl.suburb
+                clientCity = cl.city
+                clientPostalCode = cl.postalCode
                 clientCityStateZip = cl.fullAddress.ifBlank { cl.cityStateZip }
+                clientVatNo = cl.vatNo
+                clientRegNo = cl.regNo
             }
         }
     }
@@ -137,18 +149,36 @@ fun QuoteEditScreen(
                             val now = existingQuote?.issueDate ?: System.currentTimeMillis()
                             val expiry = now + (30L * 24 * 60 * 60 * 1000)
 
+                            val matchingClient = if (selectedClientId > 0) clients.find { it.id == selectedClientId } else null
+                            val finalAddress = clientAddress.trim().ifBlank { matchingClient?.address ?: "" }
+                            val finalSuburb = clientSuburb.trim().ifBlank { matchingClient?.suburb ?: "" }
+                            val finalCity = clientCity.trim().ifBlank { matchingClient?.city ?: "" }
+                            val finalPostalCode = clientPostalCode.trim().ifBlank { matchingClient?.postalCode ?: "" }
+                            val finalVatNo = clientVatNo.trim().ifBlank { matchingClient?.vatNo ?: "" }
+                            val finalRegNo = clientRegNo.trim().ifBlank { matchingClient?.regNo ?: "" }
+                            val finalCityStateZip = clientCityStateZip.trim().ifBlank {
+                                matchingClient?.fullAddress?.ifBlank { matchingClient.cityStateZip } ?: ""
+                            }
+                            val finalEmail2 = clientEmail2.trim().ifBlank { matchingClient?.invoiceEmail2 ?: "" }
+
                             val quoteToSave = Quote(
                                 id = existingQuote?.id ?: 0L,
                                 quoteNumber = existingQuote?.quoteNumber ?: "",
                                 inviteNumber = inviteNumber.trim(),
                                 poNumber = existingQuote?.poNumber ?: "",
                                 clientId = selectedClientId,
-                                clientName = clientName.trim(),
-                                clientCompany = clientCompany.trim(),
-                                clientEmail = clientEmail.trim(),
-                                clientPhone = clientPhone.trim(),
-                                clientAddress = clientAddress.trim(),
-                                clientCityStateZip = clientCityStateZip.trim(),
+                                clientName = clientName.trim().ifBlank { matchingClient?.name ?: "" },
+                                clientCompany = clientCompany.trim().ifBlank { matchingClient?.company ?: "" },
+                                clientEmail = clientEmail.trim().ifBlank { matchingClient?.effectiveQuoteEmail ?: "" },
+                                clientEmail2 = finalEmail2,
+                                clientPhone = clientPhone.trim().ifBlank { matchingClient?.phone ?: "" },
+                                clientAddress = finalAddress,
+                                clientSuburb = finalSuburb,
+                                clientCity = finalCity,
+                                clientPostalCode = finalPostalCode,
+                                clientCityStateZip = finalCityStateZip,
+                                clientVatNo = finalVatNo,
+                                clientRegNo = finalRegNo,
                                 issueDate = now,
                                 expiryDate = expiry,
                                 itemsJson = LineItemConverter.toJson(lineItems),
@@ -433,9 +463,15 @@ fun QuoteEditScreen(
                 clientName = client.name
                 clientCompany = client.company
                 clientEmail = client.effectiveQuoteEmail
+                clientEmail2 = client.invoiceEmail2
                 clientPhone = client.phone
                 clientAddress = client.address
+                clientSuburb = client.suburb
+                clientCity = client.city
+                clientPostalCode = client.postalCode
                 clientCityStateZip = client.fullAddress.ifBlank { client.cityStateZip }
+                clientVatNo = client.vatNo
+                clientRegNo = client.regNo
                 showClientPicker = false
             },
             onAddNewClient = {

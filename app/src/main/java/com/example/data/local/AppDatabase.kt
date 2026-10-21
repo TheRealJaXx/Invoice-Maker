@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
         Quote::class,
         FreelancerProfile::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,11 +36,21 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // v4 -> v5: separate quote / invoice recipient emails on clients (existing data is kept)
+        // v4 -> v5: separate quote / invoice recipient emails on clients and documents (existing data is kept)
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE clients ADD COLUMN quoteEmail TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE clients ADD COLUMN invoiceEmail TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE clients ADD COLUMN invoiceEmail2 TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE invoices ADD COLUMN clientEmail2 TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE quotes ADD COLUMN clientEmail2 TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        // v5 -> v6: add hasDueDate flag to invoices (existing invoices keep due date and data)
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE invoices ADD COLUMN hasDueDate INTEGER NOT NULL DEFAULT 1")
             }
         }
 
@@ -51,7 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "freelance_books.db"
                 )
-                    .addMigrations(MIGRATION_4_5)
+                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
                     .fallbackToDestructiveMigration()
                     .addCallback(DatabaseCallback())
                     .build()

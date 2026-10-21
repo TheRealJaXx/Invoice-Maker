@@ -8,10 +8,15 @@ import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
 import com.example.data.model.FreelancerProfile
 import com.example.data.model.Invoice
+import com.example.data.model.LineItem
 import com.example.data.model.LineItemConverter
 import com.example.data.model.Quote
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 object PdfGenerator {
 
@@ -19,15 +24,159 @@ object PdfGenerator {
     private const val PAGE_HEIGHT = 842 // A4 standard height in points
     private const val MARGIN = 40f
 
+    private val DATE_FORMATS = listOf(
+        "d MMM yyyy",
+        "dd MMM yyyy",
+        "yyyy-MM-dd",
+        "d/M/yyyy",
+        "dd/MM/yyyy",
+        "d MMMM yyyy"
+    )
+
+    private fun parseDate(dateStr: String): Date? {
+        val clean = dateStr.trim()
+        for (fmt in DATE_FORMATS) {
+            try {
+                val sdf = SimpleDateFormat(fmt, Locale.US)
+                sdf.isLenient = false
+                return sdf.parse(clean)
+            } catch (_: Exception) {}
+        }
+        return null
+    }
+
+    /**
+     * Expands dates into individual date strings.
+     * Supports:
+     * - Explicit separate days
+     * - Date ranges (expanded day by day)
+     * - Comma or newline separated dates
+     * - Single date
+     */
+    fun expandDates(item: LineItem): List<String> {
+        // 1. Separate days explicit list
+        if (item.dateMode == "SEPARATE" && item.separateDays.isNotEmpty()) {
+            return item.separateDays.map { d ->
+                if (d.label.isNotBlank()) "${d.date} (${d.label})" else d.date
+            }
+        }
+
+        // 2. Range mode with startDate and endDate
+        if (item.startDate.isNotBlank() && item.endDate.isNotBlank()) {
+            val start = parseDate(item.startDate)
+            val end = parseDate(item.endDate)
+            if (start != null && end != null && !start.after(end)) {
+                val out = mutableListOf<String>()
+                val cal = Calendar.getInstance()
+                cal.time = start
+                val endCal = Calendar.getInstance()
+                endCal.time = end
+                val outFmt = SimpleDateFormat("d MMM yyyy", Locale.US)
+                var count = 0
+                while (!cal.after(endCal) && count < 60) {
+                    out.add(outFmt.format(cal.time))
+                    cal.add(Calendar.DAY_OF_MONTH, 1)
+                    count++
+                }
+                if (out.isNotEmpty()) return out
+            }
+            if (item.startDate == item.endDate) {
+                return listOf(item.startDate)
+            }
+        }
+
+        // 3. String dates with newlines
+        if (item.dates.contains("\n")) {
+            val lines = item.dates.lines().map { it.trim().removePrefix("•").trim() }.filter { it.isNotBlank() }
+            if (lines.isNotEmpty()) return lines
+        }
+
+        // 4. String dates with commas
+        if (item.dates.contains(",")) {
+            val parts = item.dates.split(",").map { it.trim().removePrefix("•").trim() }.filter { it.isNotBlank() }
+            if (parts.isNotEmpty()) return parts
+        }
+
+        // 5. String dates with range dash
+        if (item.dates.isNotBlank()) {
+            val dashSplit = if (item.dates.contains("–")) item.dates.split("–") else if (item.dates.contains(" - ")) item.dates.split(" - ") else null
+            if (dashSplit != null && dashSplit.size == 2) {
+                val s = parseDate(dashSplit[0])
+                val e = parseDate(dashSplit[1])
+                if (s != null && e != null && !s.after(e)) {
+                    val out = mutableListOf<String>()
+                    val cal = Calendar.getInstance()
+                    cal.time = s
+                    val endCal = Calendar.getInstance()
+                    endCal.time = e
+                    val outFmt = SimpleDateFormat("d MMM yyyy", Locale.US)
+                    var count = 0
+                    while (!cal.after(endCal) && count < 60) {
+                        out.add(outFmt.format(cal.time))
+                        cal.add(Calendar.DAY_OF_MONTH, 1)
+                        count++
+                    }
+                    if (out.isNotEmpty()) return out
+                }
+            }
+            return listOf(item.dates.trim())
+        }
+
+        if (item.startDate.isNotBlank()) {
+            return listOf(item.startDate.trim())
+        }
+
+        return emptyList()
+    }
+
+    private class PdfPageManager(
+        private val document: PdfDocument,
+        val docFooterTitle: String
+    ) {
+        var pageNumber = 1
+        private var pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create()
+        var currentPage: PdfDocument.Page = document.startPage(pageInfo)
+        var canvas: Canvas = currentPage.canvas
+        var y: Float = 0f
+
+        fun startNewPage() {
+            drawFooter()
+            document.finishPage(currentPage)
+            pageNumber++
+            pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create()
+            currentPage = document.startPage(pageInfo)
+            canvas = currentPage.canvas
+            y = MARGIN
+        }
+
+        fun drawFooter() {
+            val footerPaint = Paint().apply {
+                color = Color.rgb(160, 170, 165)
+                textSize = 8.5f
+                textAlign = Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            canvas.drawText(
+                "$docFooterTitle • Page $pageNumber",
+                PAGE_WIDTH / 2f,
+                PAGE_HEIGHT - 20f,
+                footerPaint
+            )
+        }
+
+        fun finish() {
+            drawFooter()
+            document.finishPage(currentPage)
+        }
+    }
+
     fun generateInvoicePdf(context: Context, invoice: Invoice, profile: FreelancerProfile): File {
         val document = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 1).create()
-        val page = document.startPage(pageInfo)
-        val canvas = page.canvas
+        val pageManager = PdfPageManager(document, "Invoice ${invoice.invoiceNumber}")
 
-        drawInvoiceContent(canvas, invoice, profile)
+        drawInvoiceContent(pageManager, invoice, profile)
 
-        document.finishPage(page)
+        pageManager.finish()
 
         val outputDir = File(context.cacheDir, "shared_docs").apply { mkdirs() }
         val sanitizedInvNum = invoice.invoiceNumber.replace("[^a-zA-Z0-9_-]".toRegex(), "_")
@@ -43,13 +192,11 @@ object PdfGenerator {
 
     fun generateQuotePdf(context: Context, quote: Quote, profile: FreelancerProfile): File {
         val document = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 1).create()
-        val page = document.startPage(pageInfo)
-        val canvas = page.canvas
+        val pageManager = PdfPageManager(document, "Quote ${quote.quoteNumber}")
 
-        drawQuoteContent(canvas, quote, profile)
+        drawQuoteContent(pageManager, quote, profile)
 
-        document.finishPage(page)
+        pageManager.finish()
 
         val outputDir = File(context.cacheDir, "shared_docs").apply { mkdirs() }
         val sanitizedQteNum = quote.quoteNumber.replace("[^a-zA-Z0-9_-]".toRegex(), "_")
@@ -63,11 +210,40 @@ object PdfGenerator {
         return file
     }
 
-    private fun drawInvoiceContent(canvas: Canvas, invoice: Invoice, profile: FreelancerProfile) {
+    private fun drawTableHeader(canvas: Canvas, y: Float) {
+        val rightX = PAGE_WIDTH - MARGIN
+        val thBackground = Paint().apply {
+            color = Color.rgb(240, 245, 242)
+            style = Paint.Style.FILL
+        }
+        val thHeight = 24f
+        canvas.drawRoundRect(RectF(MARGIN, y, rightX, y + thHeight), 4f, 4f, thBackground)
+
+        val descX = MARGIN + 12f
+        val qtyX = rightX - 220f
+        val rateX = rightX - 140f
+        val amountX = rightX - 12f
+
+        val thTextPaint = Paint().apply {
+            color = Color.rgb(40, 50, 45)
+            textSize = 9.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
+        val textOffsetY = y + 16f
+        canvas.drawText("DATE / JOB / SERVICE", descX, textOffsetY, thTextPaint)
+        canvas.drawText("DAYS", qtyX, textOffsetY, thTextPaint)
+        canvas.drawText("DAILY RATE", rateX, textOffsetY, thTextPaint)
+        canvas.drawText("AMOUNT", amountX, textOffsetY, Paint(thTextPaint).apply { textAlign = Paint.Align.RIGHT })
+    }
+
+    private fun drawInvoiceContent(pageManager: PdfPageManager, invoice: Invoice, profile: FreelancerProfile) {
         val items = LineItemConverter.fromJson(invoice.itemsJson)
         val currency = profile.currencySymbol.ifBlank { "R" }
+        var canvas = pageManager.canvas
 
-        // Paints
+        // Common Paints
         val primaryPaint = Paint().apply {
             color = Color.rgb(13, 92, 58) // Emerald
             style = Paint.Style.FILL
@@ -127,7 +303,6 @@ object PdfGenerator {
         var y = 45f
 
         // Freelancer Info (Top Left)
-        // When individual is selected, the top of the quote/invoice CANNOT have a company name!
         if (profile.isIndividual) {
             val displayName = profile.ownerName.ifBlank { "Freelance Professional" }
             canvas.drawText(displayName, MARGIN, y, headerTitlePaint)
@@ -169,7 +344,6 @@ object PdfGenerator {
             isAntiAlias = true
         }
 
-        // Put either the invite number or po number top right just below where the invoice number goes!
         if (invoice.poNumber.isNotBlank()) {
             canvas.drawText("PO Number: ${invoice.poNumber}", rightX, currentRightY, refPaint)
             currentRightY += 13f
@@ -202,39 +376,43 @@ object PdfGenerator {
         val col2X = PAGE_WIDTH / 2f + 20f
 
         // Left Column: BILLED TO
+        // In both PDFs, the Bill To / Prepared For block must show: client name, company, VAT No, Reg No, the full address (street, suburb, city, postal code), email and phone. Skip lines that are blank.
         val clientStartY = y
         canvas.drawText("BILLED TO", MARGIN, y, sectionHeaderPaint)
         var clientY = y + 14f
-        canvas.drawText(invoice.clientName, MARGIN, clientY, bodyBoldPaint)
-        clientY += 13f
+
+        val clientLines = mutableListOf<Pair<String, Paint>>()
+        if (invoice.clientName.isNotBlank()) {
+            clientLines.add(invoice.clientName to bodyBoldPaint)
+        }
         if (invoice.clientCompany.isNotBlank()) {
-            canvas.drawText(invoice.clientCompany, MARGIN, clientY, bodyPaint)
-            clientY += 12f
-        }
-        if (invoice.clientEmail.isNotBlank()) {
-            canvas.drawText(invoice.clientEmail, MARGIN, clientY, bodyPaint)
-            clientY += 12f
-        }
-        if (invoice.clientEmail2.isNotBlank()) {
-            canvas.drawText(invoice.clientEmail2, MARGIN, clientY, bodyPaint)
-            clientY += 12f
-        }
-        if (invoice.clientPhone.isNotBlank()) {
-            canvas.drawText(invoice.clientPhone, MARGIN, clientY, bodyPaint)
-            clientY += 12f
+            clientLines.add(invoice.clientCompany to bodyPaint)
         }
         if (invoice.clientVatNo.isNotBlank()) {
-            canvas.drawText("VAT No: ${invoice.clientVatNo}", MARGIN, clientY, bodyPaint)
-            clientY += 12f
+            clientLines.add("VAT No: ${invoice.clientVatNo}" to bodyPaint)
         }
         if (invoice.clientRegNo.isNotBlank()) {
-            canvas.drawText("Reg No: ${invoice.clientRegNo}", MARGIN, clientY, bodyPaint)
-            clientY += 12f
+            clientLines.add("Reg No: ${invoice.clientRegNo}" to bodyPaint)
         }
-        val fullClientAddress = listOf(invoice.clientAddress, invoice.clientSuburb, invoice.clientCity, invoice.clientPostalCode).filter { it.isNotBlank() }.joinToString(", ")
+        val fullClientAddress = listOf(invoice.clientAddress, invoice.clientSuburb, invoice.clientCity, invoice.clientPostalCode)
+            .filter { it.isNotBlank() }
+            .joinToString(", ")
         val finalAddr = fullClientAddress.ifBlank { invoice.clientCityStateZip }
         if (finalAddr.isNotBlank()) {
-            canvas.drawText(finalAddr, MARGIN, clientY, bodyPaint)
+            clientLines.add(finalAddr to bodyPaint)
+        }
+        if (invoice.clientEmail.isNotBlank()) {
+            clientLines.add(invoice.clientEmail to bodyPaint)
+        }
+        if (invoice.clientEmail2.isNotBlank()) {
+            clientLines.add(invoice.clientEmail2 to bodyPaint)
+        }
+        if (invoice.clientPhone.isNotBlank()) {
+            clientLines.add(invoice.clientPhone to bodyPaint)
+        }
+
+        for ((lineText, paint) in clientLines) {
+            canvas.drawText(lineText, MARGIN, clientY, paint)
             clientY += 12f
         }
 
@@ -244,8 +422,12 @@ object PdfGenerator {
         metaY += 14f
         canvas.drawText("Issue Date: ${Formatters.formatDate(invoice.issueDate)}", col2X, metaY, bodyPaint)
         metaY += 12f
-        canvas.drawText("Due Date: ${Formatters.formatDate(invoice.dueDate)}", col2X, metaY, bodyBoldPaint)
-        metaY += 12f
+
+        // When hasDueDate is false, the due date must not appear anywhere
+        if (invoice.hasDueDate) {
+            canvas.drawText("Due Date: ${Formatters.formatDate(invoice.dueDate)}", col2X, metaY, bodyBoldPaint)
+            metaY += 12f
+        }
 
         if (invoice.poNumber.isNotBlank()) {
             canvas.drawText("PO Number: ${invoice.poNumber}", col2X, metaY, bodyBoldPaint)
@@ -257,108 +439,106 @@ object PdfGenerator {
         }
 
         y = maxOf(clientY, metaY) + 16f
+        pageManager.y = y
 
-        // Table Header (Service & Project, Days, Daily Rate, Amount - NO TAX)
-        val thBackground = Paint().apply {
-            color = Color.rgb(240, 245, 242)
-            style = Paint.Style.FILL
+        // Draw Table Header
+        drawTableHeader(canvas, pageManager.y)
+        pageManager.y += 24f + 8f
+
+        // Table Rows Paints
+        val rowDatePaint = Paint().apply {
+            color = Color.rgb(20, 30, 25)
+            textSize = 9.5f
+            isFakeBoldText = true
+            isAntiAlias = true
         }
-        val thHeight = 24f
-        canvas.drawRoundRect(RectF(MARGIN, y, rightX, y + thHeight), 4f, 4f, thBackground)
+        val rowJobPaint = Paint().apply {
+            color = Color.rgb(40, 55, 48)
+            textSize = 9f
+            isAntiAlias = true
+        }
+        val rowServicePaint = Paint().apply {
+            color = Color.rgb(80, 95, 88)
+            textSize = 9f
+            isAntiAlias = true
+        }
+        val rowValPaint = Paint().apply {
+            color = Color.rgb(30, 40, 35)
+            textSize = 9.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+        val rightAlignRowPaint = Paint(rowValPaint).apply { textAlign = Paint.Align.RIGHT }
 
         val descX = MARGIN + 12f
         val qtyX = rightX - 220f
         val rateX = rightX - 140f
         val amountX = rightX - 12f
 
-        val thTextPaint = Paint().apply {
-            color = Color.rgb(40, 50, 45)
-            textSize = 9.5f
-            isFakeBoldText = true
-            isAntiAlias = true
-        }
-
-        val textOffsetY = y + 16f
-        canvas.drawText("SERVICE & PROJECT / DATES", descX, textOffsetY, thTextPaint)
-        canvas.drawText("DAYS", qtyX, textOffsetY, thTextPaint)
-        canvas.drawText("DAILY RATE", rateX, textOffsetY, thTextPaint)
-        canvas.drawText("AMOUNT", amountX, textOffsetY, Paint(thTextPaint).apply { textAlign = Paint.Align.RIGHT })
-
-        y += thHeight + 8f
-
-        // Table Rows
-        val rowTitlePaint = Paint().apply {
-            color = Color.rgb(25, 35, 30)
-            textSize = 9.5f
-            isFakeBoldText = true
-            isAntiAlias = true
-        }
-        val rowSubPaint = Paint().apply {
-            color = Color.rgb(90, 100, 95)
-            textSize = 8.5f
-            isAntiAlias = true
-        }
-        val rowSubBoldPaint = Paint().apply {
-            color = Color.rgb(30, 50, 40)
-            textSize = 8.5f
-            isFakeBoldText = true
-            isAntiAlias = true
-        }
-        val rowValPaint = Paint().apply {
-            color = Color.rgb(40, 40, 40)
-            textSize = 9.5f
-            isAntiAlias = true
-        }
-        val rightAlignRowPaint = Paint(rowValPaint).apply { textAlign = Paint.Align.RIGHT }
-
         for (item in items) {
-            val itemY = y + 10f
-            // Main title: Service • Project
-            val mainTitle = buildString {
-                if (item.service.isNotBlank()) append(item.service)
-                if (item.project.isNotBlank()) {
-                    if (isNotEmpty()) append(" • ")
-                    append(item.project)
-                }
-                if (isEmpty()) append("Broadcast Service")
-            }
-            canvas.drawText(mainTitle, descX, itemY, rowTitlePaint)
+            val dateList = expandDates(item)
+            val dateEntries = if (dateList.isNotEmpty()) dateList else listOf("")
+            val numBlocks = dateEntries.size
+            val blockHeight = 3 * 12f + 4f
+            val itemHeight = numBlocks * blockHeight + 10f
 
-            // Numbers: Days, Daily Rate, Amount
-            canvas.drawText(if (item.quantity % 1.0 == 0.0) item.quantity.toInt().toString() else item.quantity.toString(), qtyX, itemY, rowValPaint)
+            // Page break check
+            if (pageManager.y + itemHeight > PAGE_HEIGHT - 65f) {
+                pageManager.startNewPage()
+                drawTableHeader(pageManager.canvas, pageManager.y)
+                pageManager.y += 24f + 8f
+            }
+
+            canvas = pageManager.canvas
+            val itemStartY = pageManager.y + 10f
+
+            // Numbers: Days, Daily Rate, Amount aligned to the first line of the item
+            val daysDisplay = if (item.quantity % 1.0 == 0.0) item.quantity.toInt().toString() else item.quantity.toString()
+            canvas.drawText(daysDisplay, qtyX, itemStartY, rowValPaint)
+
             val rateDisplay = if (item.dateMode == "SEPARATE" && item.separateDays.isNotEmpty()) {
                 "Var (${Formatters.formatCurrency(item.unitPrice, currency)})"
             } else {
                 Formatters.formatCurrency(item.dailyRate, currency)
             }
-            canvas.drawText(rateDisplay, rateX, itemY, rowValPaint)
-            canvas.drawText(Formatters.formatCurrency(item.total, currency), amountX, itemY, rightAlignRowPaint)
+            canvas.drawText(rateDisplay, rateX, itemStartY, rowValPaint)
+            canvas.drawText(Formatters.formatCurrency(item.total, currency), amountX, itemStartY, rightAlignRowPaint)
 
-            // Dates breakdown: when dates are scattered, put each date on a new line!
-            var currentSubY = itemY + 12f
-            if (item.isScatteredDates && item.dateLines.size > 1) {
-                canvas.drawText("Dates Worked (${item.dateLines.size} days):", descX, currentSubY, rowSubBoldPaint)
-                currentSubY += 11f
-                for (dLine in item.dateLines) {
-                    canvas.drawText("• $dLine", descX + 6f, currentSubY, rowSubPaint)
-                    currentSubY += 11f
-                }
-                y = currentSubY + 4f
-            } else if (item.formattedDatesSummary.isNotBlank()) {
-                canvas.drawText("Dates: ${item.formattedDatesSummary}", descX, currentSubY, rowSubPaint)
-                y = currentSubY + 16f
-            } else {
-                y += 22f
+            var curY = itemStartY
+            for (dateStr in dateEntries) {
+                // Line 1: Date
+                val displayDate = if (dateStr.isNotBlank()) dateStr else "Date TBA"
+                canvas.drawText(displayDate, descX, curY, rowDatePaint)
+                curY += 12f
+
+                // Line 2: Job (the project)
+                val jobText = item.project.ifBlank { "Production / Job" }
+                canvas.drawText(jobText, descX, curY, rowJobPaint)
+                curY += 12f
+
+                // Line 3: Service rendered
+                val serviceText = item.service.ifBlank { "Broadcast Service" }
+                canvas.drawText(serviceText, descX, curY, rowServicePaint)
+                curY += 14f
             }
 
-            canvas.drawLine(MARGIN, y, rightX, y, Paint().apply {
-                color = Color.rgb(242, 244, 242)
+            pageManager.y = curY + 2f
+            canvas.drawLine(MARGIN, pageManager.y, rightX, pageManager.y, Paint().apply {
+                color = Color.rgb(235, 240, 236)
                 strokeWidth = 1f
             })
-            y += 5f
+            pageManager.y += 6f
         }
 
-        y += 15f
+        pageManager.y += 12f
+
+        // Summary Totals Box & Payment Info check for page break
+        if (pageManager.y + 150f > PAGE_HEIGHT - 55f) {
+            pageManager.startNewPage()
+        }
+
+        canvas = pageManager.canvas
+        y = pageManager.y
 
         // Summary Totals Box (Right aligned - NO TAX)
         val sumBoxLeft = rightX - 220f
@@ -402,7 +582,7 @@ object PdfGenerator {
         canvas.drawText("TOTAL DUE", sumBoxLeft, y + 17f, totalTitlePaint)
         canvas.drawText(Formatters.formatCurrency(invoice.total, currency), rightX - 10f, y + 17f, totalValPaint)
 
-        y += 50f
+        y += 48f
 
         // Payment Notes & Banking Instructions (Bottom Left)
         val instr = invoice.paymentInstructions.ifBlank { profile.paymentInstructions }
@@ -424,19 +604,13 @@ object PdfGenerator {
             y += 16f
         }
 
-        // Footer
-        val footerPaint = Paint().apply {
-            color = Color.rgb(160, 170, 165)
-            textSize = 8.5f
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-        }
-        canvas.drawText("Thank you for your business! • Freelance Invoice", PAGE_WIDTH / 2f, PAGE_HEIGHT - 20f, footerPaint)
+        pageManager.y = y
     }
 
-    private fun drawQuoteContent(canvas: Canvas, quote: Quote, profile: FreelancerProfile) {
+    private fun drawQuoteContent(pageManager: PdfPageManager, quote: Quote, profile: FreelancerProfile) {
         val items = LineItemConverter.fromJson(quote.itemsJson)
         val currency = profile.currencySymbol.ifBlank { "R" }
+        var canvas = pageManager.canvas
 
         val primaryPaint = Paint().apply {
             color = Color.rgb(13, 92, 58)
@@ -491,19 +665,17 @@ object PdfGenerator {
             style = Paint.Style.STROKE
         }
 
-        // Top accent
         canvas.drawRect(0f, 0f, PAGE_WIDTH.toFloat(), 8f, primaryPaint)
 
         var y = 45f
 
-        // Top Left Freelancer info
-        // When individual is selected, the top of the quote/invoice CANNOT have a company name!
+        // Freelancer Info
         if (profile.isIndividual) {
             val displayName = profile.ownerName.ifBlank { "Freelance Professional" }
             canvas.drawText(displayName, MARGIN, y, headerTitlePaint)
             y += 16f
         } else {
-            val companyName = profile.businessName.ifBlank { "Freelance Studio" }
+            val companyName = profile.businessName.ifBlank { "Freelance Services" }
             canvas.drawText(companyName, MARGIN, y, headerTitlePaint)
             y += 15f
             if (profile.ownerName.isNotBlank()) {
@@ -519,13 +691,12 @@ object PdfGenerator {
             canvas.drawText(profile.phone, MARGIN, y, subheaderPaint)
             y += 12f
         }
-        val quoteAddrStr = listOf(profile.address, profile.cityStateZip).filter { it.isNotBlank() }.joinToString(", ")
-        if (quoteAddrStr.isNotBlank()) {
-            canvas.drawText(quoteAddrStr, MARGIN, y, subheaderPaint)
+        val addrStr = listOf(profile.address, profile.cityStateZip).filter { it.isNotBlank() }.joinToString(", ")
+        if (addrStr.isNotBlank()) {
+            canvas.drawText(addrStr, MARGIN, y, subheaderPaint)
             y += 12f
         }
 
-        // Top Right
         val rightX = PAGE_WIDTH - MARGIN
         canvas.drawText("PRICE QUOTE", rightX, 48f, docTypePaint)
         canvas.drawText(quote.quoteNumber, rightX, 66f, docNumberPaint)
@@ -539,13 +710,12 @@ object PdfGenerator {
             isAntiAlias = true
         }
 
-        // Put either the invite number or po number top right just below where the quote/invoice number goes!
         if (quote.inviteNumber.isNotBlank()) {
             canvas.drawText("Job Invite: ${quote.inviteNumber}", rightX, currentRightY, refPaint)
             currentRightY += 13f
         }
         if (quote.poNumber.isNotBlank()) {
-            canvas.drawText("PO Number: ${quote.poNumber}", rightX, currentRightY, refPaint)
+            canvas.drawText("PO Ref: ${quote.poNumber}", rightX, currentRightY, refPaint)
             currentRightY += 13f
         }
 
@@ -568,32 +738,44 @@ object PdfGenerator {
         // Grid
         val col2X = PAGE_WIDTH / 2f + 20f
 
-        // Left: Prepared For
+        // Left: PREPARED FOR
+        // In both PDFs, the Bill To / Prepared For block must show: client name, company, VAT No, Reg No, the full address (street, suburb, city, postal code), email and phone. Skip lines that are blank.
         val clientStartY = y
         canvas.drawText("PREPARED FOR", MARGIN, y, sectionHeaderPaint)
         var clientY = y + 14f
-        canvas.drawText(quote.clientName, MARGIN, clientY, bodyBoldPaint)
-        clientY += 13f
+
+        val clientLines = mutableListOf<Pair<String, Paint>>()
+        if (quote.clientName.isNotBlank()) {
+            clientLines.add(quote.clientName to bodyBoldPaint)
+        }
         if (quote.clientCompany.isNotBlank()) {
-            canvas.drawText(quote.clientCompany, MARGIN, clientY, bodyPaint)
-            clientY += 12f
+            clientLines.add(quote.clientCompany to bodyPaint)
         }
-        if (quote.clientEmail.isNotBlank()) {
-            canvas.drawText(quote.clientEmail, MARGIN, clientY, bodyPaint)
-            clientY += 12f
+        if (quote.clientVatNo.isNotBlank()) {
+            clientLines.add("VAT No: ${quote.clientVatNo}" to bodyPaint)
         }
-        if (quote.clientEmail2.isNotBlank()) {
-            canvas.drawText(quote.clientEmail2, MARGIN, clientY, bodyPaint)
-            clientY += 12f
+        if (quote.clientRegNo.isNotBlank()) {
+            clientLines.add("Reg No: ${quote.clientRegNo}" to bodyPaint)
         }
-        if (quote.clientPhone.isNotBlank()) {
-            canvas.drawText(quote.clientPhone, MARGIN, clientY, bodyPaint)
-            clientY += 12f
-        }
-        val fullClientAddress = listOf(quote.clientAddress, quote.clientSuburb, quote.clientCity, quote.clientPostalCode).filter { it.isNotBlank() }.joinToString(", ")
+        val fullClientAddress = listOf(quote.clientAddress, quote.clientSuburb, quote.clientCity, quote.clientPostalCode)
+            .filter { it.isNotBlank() }
+            .joinToString(", ")
         val finalAddr = fullClientAddress.ifBlank { quote.clientCityStateZip }
         if (finalAddr.isNotBlank()) {
-            canvas.drawText(finalAddr, MARGIN, clientY, bodyPaint)
+            clientLines.add(finalAddr to bodyPaint)
+        }
+        if (quote.clientEmail.isNotBlank()) {
+            clientLines.add(quote.clientEmail to bodyPaint)
+        }
+        if (quote.clientEmail2.isNotBlank()) {
+            clientLines.add(quote.clientEmail2 to bodyPaint)
+        }
+        if (quote.clientPhone.isNotBlank()) {
+            clientLines.add(quote.clientPhone to bodyPaint)
+        }
+
+        for ((lineText, paint) in clientLines) {
+            canvas.drawText(lineText, MARGIN, clientY, paint)
             clientY += 12f
         }
 
@@ -616,105 +798,99 @@ object PdfGenerator {
         }
 
         y = maxOf(clientY, metaY) + 16f
+        pageManager.y = y
 
-        // Table header (NO TAX)
-        val thBackground = Paint().apply {
-            color = Color.rgb(240, 245, 242)
-            style = Paint.Style.FILL
+        // Table header
+        drawTableHeader(canvas, pageManager.y)
+        pageManager.y += 24f + 8f
+
+        val rowDatePaint = Paint().apply {
+            color = Color.rgb(20, 30, 25)
+            textSize = 9.5f
+            isFakeBoldText = true
+            isAntiAlias = true
         }
-        val thHeight = 24f
-        canvas.drawRoundRect(RectF(MARGIN, y, rightX, y + thHeight), 4f, 4f, thBackground)
+        val rowJobPaint = Paint().apply {
+            color = Color.rgb(40, 55, 48)
+            textSize = 9f
+            isAntiAlias = true
+        }
+        val rowServicePaint = Paint().apply {
+            color = Color.rgb(80, 95, 88)
+            textSize = 9f
+            isAntiAlias = true
+        }
+        val rowValPaint = Paint().apply {
+            color = Color.rgb(30, 40, 35)
+            textSize = 9.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+        val rightAlignRowPaint = Paint(rowValPaint).apply { textAlign = Paint.Align.RIGHT }
 
         val descX = MARGIN + 12f
         val qtyX = rightX - 220f
         val rateX = rightX - 140f
         val amountX = rightX - 12f
 
-        val thTextPaint = Paint().apply {
-            color = Color.rgb(40, 50, 45)
-            textSize = 9.5f
-            isFakeBoldText = true
-            isAntiAlias = true
-        }
-
-        val textOffsetY = y + 16f
-        canvas.drawText("SERVICE & PROJECT / DATES", descX, textOffsetY, thTextPaint)
-        canvas.drawText("DAYS", qtyX, textOffsetY, thTextPaint)
-        canvas.drawText("DAILY RATE", rateX, textOffsetY, thTextPaint)
-        canvas.drawText("AMOUNT", amountX, textOffsetY, Paint(thTextPaint).apply { textAlign = Paint.Align.RIGHT })
-
-        y += thHeight + 8f
-
-        val rowTitlePaint = Paint().apply {
-            color = Color.rgb(25, 35, 30)
-            textSize = 9.5f
-            isFakeBoldText = true
-            isAntiAlias = true
-        }
-        val rowSubPaint = Paint().apply {
-            color = Color.rgb(90, 100, 95)
-            textSize = 8.5f
-            isAntiAlias = true
-        }
-        val rowSubBoldPaint = Paint().apply {
-            color = Color.rgb(30, 50, 40)
-            textSize = 8.5f
-            isFakeBoldText = true
-            isAntiAlias = true
-        }
-        val rowValPaint = Paint().apply {
-            color = Color.rgb(40, 40, 40)
-            textSize = 9.5f
-            isAntiAlias = true
-        }
-        val rightAlignRowPaint = Paint(rowValPaint).apply { textAlign = Paint.Align.RIGHT }
-
         for (item in items) {
-            val itemY = y + 10f
-            val mainTitle = buildString {
-                if (item.service.isNotBlank()) append(item.service)
-                if (item.project.isNotBlank()) {
-                    if (isNotEmpty()) append(" • ")
-                    append(item.project)
-                }
-                if (isEmpty()) append("Broadcast Service")
-            }
-            canvas.drawText(mainTitle, descX, itemY, rowTitlePaint)
+            val dateList = expandDates(item)
+            val dateEntries = if (dateList.isNotEmpty()) dateList else listOf("")
+            val numBlocks = dateEntries.size
+            val blockHeight = 3 * 12f + 4f
+            val itemHeight = numBlocks * blockHeight + 10f
 
-            canvas.drawText(if (item.quantity % 1.0 == 0.0) item.quantity.toInt().toString() else item.quantity.toString(), qtyX, itemY, rowValPaint)
+            if (pageManager.y + itemHeight > PAGE_HEIGHT - 65f) {
+                pageManager.startNewPage()
+                drawTableHeader(pageManager.canvas, pageManager.y)
+                pageManager.y += 24f + 8f
+            }
+
+            canvas = pageManager.canvas
+            val itemStartY = pageManager.y + 10f
+
+            val daysDisplay = if (item.quantity % 1.0 == 0.0) item.quantity.toInt().toString() else item.quantity.toString()
+            canvas.drawText(daysDisplay, qtyX, itemStartY, rowValPaint)
+
             val rateDisplay = if (item.dateMode == "SEPARATE" && item.separateDays.isNotEmpty()) {
                 "Var (${Formatters.formatCurrency(item.unitPrice, currency)})"
             } else {
                 Formatters.formatCurrency(item.dailyRate, currency)
             }
-            canvas.drawText(rateDisplay, rateX, itemY, rowValPaint)
-            canvas.drawText(Formatters.formatCurrency(item.total, currency), amountX, itemY, rightAlignRowPaint)
+            canvas.drawText(rateDisplay, rateX, itemStartY, rowValPaint)
+            canvas.drawText(Formatters.formatCurrency(item.total, currency), amountX, itemStartY, rightAlignRowPaint)
 
-            // Dates breakdown: when dates are scattered, put each date on a new line!
-            var currentSubY = itemY + 12f
-            if (item.isScatteredDates && item.dateLines.size > 1) {
-                canvas.drawText("Dates Worked (${item.dateLines.size} days):", descX, currentSubY, rowSubBoldPaint)
-                currentSubY += 11f
-                for (dLine in item.dateLines) {
-                    canvas.drawText("• $dLine", descX + 6f, currentSubY, rowSubPaint)
-                    currentSubY += 11f
-                }
-                y = currentSubY + 4f
-            } else if (item.formattedDatesSummary.isNotBlank()) {
-                canvas.drawText("Dates: ${item.formattedDatesSummary}", descX, currentSubY, rowSubPaint)
-                y = currentSubY + 16f
-            } else {
-                y += 22f
+            var curY = itemStartY
+            for (dateStr in dateEntries) {
+                val displayDate = if (dateStr.isNotBlank()) dateStr else "Date TBA"
+                canvas.drawText(displayDate, descX, curY, rowDatePaint)
+                curY += 12f
+
+                val jobText = item.project.ifBlank { "Production / Job" }
+                canvas.drawText(jobText, descX, curY, rowJobPaint)
+                curY += 12f
+
+                val serviceText = item.service.ifBlank { "Broadcast Service" }
+                canvas.drawText(serviceText, descX, curY, rowServicePaint)
+                curY += 14f
             }
 
-            canvas.drawLine(MARGIN, y, rightX, y, Paint().apply {
-                color = Color.rgb(242, 244, 242)
+            pageManager.y = curY + 2f
+            canvas.drawLine(MARGIN, pageManager.y, rightX, pageManager.y, Paint().apply {
+                color = Color.rgb(235, 240, 236)
                 strokeWidth = 1f
             })
-            y += 5f
+            pageManager.y += 6f
         }
 
-        y += 15f
+        pageManager.y += 12f
+
+        if (pageManager.y + 150f > PAGE_HEIGHT - 55f) {
+            pageManager.startNewPage()
+        }
+
+        canvas = pageManager.canvas
+        y = pageManager.y
 
         val sumBoxLeft = rightX - 220f
         val sumLabelPaint = Paint().apply {
@@ -756,7 +932,7 @@ object PdfGenerator {
         canvas.drawText("ESTIMATED TOTAL", sumBoxLeft, y + 17f, totalTitlePaint)
         canvas.drawText(Formatters.formatCurrency(quote.total, currency), rightX - 10f, y + 17f, totalValPaint)
 
-        y += 50f
+        y += 48f
 
         if (quote.terms.isNotBlank()) {
             canvas.drawText("PROPOSED TERMS", MARGIN, y, sectionHeaderPaint)
@@ -772,12 +948,6 @@ object PdfGenerator {
             y += 16f
         }
 
-        val footerPaint = Paint().apply {
-            color = Color.rgb(160, 170, 165)
-            textSize = 8.5f
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-        }
-        canvas.drawText("Questions? Contact ${profile.email} • Freelance Quote", PAGE_WIDTH / 2f, PAGE_HEIGHT - 20f, footerPaint)
+        pageManager.y = y
     }
 }

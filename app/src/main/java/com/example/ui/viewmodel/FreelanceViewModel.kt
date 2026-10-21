@@ -89,7 +89,7 @@ class FreelanceViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 "Sent" -> {
                     activeCount++
-                    if (now > inv.dueDate) {
+                    if (inv.hasDueDate && now > inv.dueDate) {
                         totalOver += (inv.total - inv.amountPaid)
                     } else {
                         totalOut += (inv.total - inv.amountPaid)
@@ -97,7 +97,11 @@ class FreelanceViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 "Overdue" -> {
                     activeCount++
-                    totalOver += (inv.total - inv.amountPaid)
+                    if (inv.hasDueDate) {
+                        totalOver += (inv.total - inv.amountPaid)
+                    } else {
+                        totalOut += (inv.total - inv.amountPaid)
+                    }
                 }
             }
         }

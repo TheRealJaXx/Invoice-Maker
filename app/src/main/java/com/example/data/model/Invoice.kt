@@ -7,8 +7,8 @@ import androidx.room.PrimaryKey
 data class Invoice(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val invoiceNumber: String,
-    val invoiceSequence: Int,
+    val invoiceNumber: String = "",
+    val invoiceSequence: Int = 0,
     val poNumber: String = "",
     val inviteNumber: String = "",
     val quoteId: Long? = null,
@@ -26,6 +26,7 @@ data class Invoice(
     val clientVatNo: String = "",
     val clientRegNo: String = "",
     val issueDate: Long = System.currentTimeMillis(),
+    val hasDueDate: Boolean = true,
     val dueDate: Long = System.currentTimeMillis() + (14L * 24 * 60 * 60 * 1000), // Default 14 days
     val itemsJson: String = "[]",
     val subtotal: Double = 0.0,

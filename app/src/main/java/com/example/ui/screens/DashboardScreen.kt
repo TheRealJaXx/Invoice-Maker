@@ -64,7 +64,6 @@ fun DashboardScreen(
     clients: List<Client>,
     profile: FreelancerProfile,
     onNavigate: (Screen) -> Unit,
-    onOpenJobInvite: () -> Unit,
     onConvertQuote: (Quote) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,78 +76,6 @@ fun DashboardScreen(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Hero Header
-        item {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = profile.businessName.ifBlank { "Freelance Studio" },
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = "Welcome, ${profile.ownerName.ifBlank { "Freelancer" }}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Paid,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // Job Invite Call-to-action Banner
-                    Button(
-                        onClick = onOpenJobInvite,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("dashboard_job_invite_button")
-                    ) {
-                        Icon(Icons.Default.Assignment, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Got a Job Invite? Create Quote / Invoice",
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
 
         // Financial Metrics 2x2 Grid
         item {
@@ -423,11 +350,13 @@ fun DashboardScreen(
                                         fontSize = 13.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    Text(
-                                        text = "Due: ${Formatters.formatDate(invoice.dueDate)}",
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    if (invoice.hasDueDate) {
+                                        Text(
+                                            text = "Due: ${Formatters.formatDate(invoice.dueDate)}",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {

@@ -270,11 +270,13 @@ fun InvoicesScreen(
                                     }
 
                                     Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            text = "Due ${Formatters.formatDate(invoice.dueDate)}",
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                        if (invoice.hasDueDate) {
+                                            Text(
+                                                text = "Due ${Formatters.formatDate(invoice.dueDate)}",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
 
                                         if (invoice.status != "Paid") {
                                             Spacer(Modifier.height(4.dp))

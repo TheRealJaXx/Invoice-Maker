@@ -118,6 +118,16 @@ class FreelanceRepository(private val db: AppDatabase) {
         val invoiceEmail = client?.effectiveInvoiceEmail ?: quote.clientEmail
         val invoiceEmail2 = client?.invoiceEmail2 ?: quote.clientEmail2
 
+        val finalAddress = quote.clientAddress.ifBlank { client?.address ?: "" }
+        val finalSuburb = quote.clientSuburb.ifBlank { client?.suburb ?: "" }
+        val finalCity = quote.clientCity.ifBlank { client?.city ?: "" }
+        val finalPostalCode = quote.clientPostalCode.ifBlank { client?.postalCode ?: "" }
+        val finalVatNo = quote.clientVatNo.ifBlank { client?.vatNo ?: "" }
+        val finalRegNo = quote.clientRegNo.ifBlank { client?.regNo ?: "" }
+        val finalCityStateZip = quote.clientCityStateZip.ifBlank {
+            client?.fullAddress?.ifBlank { client.cityStateZip } ?: ""
+        }
+
         val newInvoice = Invoice(
             invoiceNumber = invNumber,
             invoiceSequence = nextSeq,
@@ -125,18 +135,18 @@ class FreelanceRepository(private val db: AppDatabase) {
             inviteNumber = quote.inviteNumber,
             quoteId = quote.id,
             clientId = quote.clientId,
-            clientName = quote.clientName,
-            clientCompany = quote.clientCompany,
+            clientName = quote.clientName.ifBlank { client?.name ?: "" },
+            clientCompany = quote.clientCompany.ifBlank { client?.company ?: "" },
             clientEmail = invoiceEmail,
             clientEmail2 = invoiceEmail2,
-            clientPhone = quote.clientPhone,
-            clientAddress = quote.clientAddress,
-            clientSuburb = quote.clientSuburb,
-            clientCity = quote.clientCity,
-            clientPostalCode = quote.clientPostalCode,
-            clientCityStateZip = quote.clientCityStateZip,
-            clientVatNo = quote.clientVatNo,
-            clientRegNo = quote.clientRegNo,
+            clientPhone = quote.clientPhone.ifBlank { client?.phone ?: "" },
+            clientAddress = finalAddress,
+            clientSuburb = finalSuburb,
+            clientCity = finalCity,
+            clientPostalCode = finalPostalCode,
+            clientCityStateZip = finalCityStateZip,
+            clientVatNo = finalVatNo,
+            clientRegNo = finalRegNo,
             issueDate = System.currentTimeMillis(),
             dueDate = System.currentTimeMillis() + (profile.defaultPaymentTermsDays.toLong() * 24 * 60 * 60 * 1000),
             itemsJson = quote.itemsJson,

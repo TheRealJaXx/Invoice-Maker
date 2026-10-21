@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -86,7 +88,12 @@ fun InvoiceEditScreen(
     var clientEmail2 by remember { mutableStateOf(existingInvoice?.clientEmail2 ?: "") }
     var clientPhone by remember { mutableStateOf(existingInvoice?.clientPhone ?: "") }
     var clientAddress by remember { mutableStateOf(existingInvoice?.clientAddress ?: "") }
+    var clientSuburb by remember { mutableStateOf(existingInvoice?.clientSuburb ?: "") }
+    var clientCity by remember { mutableStateOf(existingInvoice?.clientCity ?: "") }
+    var clientPostalCode by remember { mutableStateOf(existingInvoice?.clientPostalCode ?: "") }
     var clientCityStateZip by remember { mutableStateOf(existingInvoice?.clientCityStateZip ?: "") }
+    var clientVatNo by remember { mutableStateOf(existingInvoice?.clientVatNo ?: "") }
+    var clientRegNo by remember { mutableStateOf(existingInvoice?.clientRegNo ?: "") }
 
     // If initialClientId was passed and no existing invoice, auto-fill from clients list
     LaunchedEffect(initialClientId, clients) {
@@ -99,7 +106,12 @@ fun InvoiceEditScreen(
                 clientEmail2 = cl.invoiceEmail2
                 clientPhone = cl.phone
                 clientAddress = cl.address
+                clientSuburb = cl.suburb
+                clientCity = cl.city
+                clientPostalCode = cl.postalCode
                 clientCityStateZip = cl.fullAddress.ifBlank { cl.cityStateZip }
+                clientVatNo = cl.vatNo
+                clientRegNo = cl.regNo
             }
         }
     }
@@ -108,7 +120,52 @@ fun InvoiceEditScreen(
     var invoiceNumber by remember { mutableStateOf(existingInvoice?.invoiceNumber ?: "Auto-Increment") }
     var poNumber by remember { mutableStateOf(existingInvoice?.poNumber ?: initialPoNumber) }
     var inviteNumber by remember { mutableStateOf(existingInvoice?.inviteNumber ?: initialInviteNumber) }
-    var paymentTermsDays by remember { mutableStateOf(existingInvoice?.let { ((it.dueDate - it.issueDate) / (24L * 60 * 60 * 1000)).toInt() } ?: profile.defaultPaymentTermsDays) }
+
+    fun getEndOfDay(timestamp: Long): Long {
+        val cal = java.util.Calendar.getInstance()
+        cal.timeInMillis = timestamp
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 23)
+        cal.set(java.util.Calendar.MINUTE, 59)
+        cal.set(java.util.Calendar.SECOND, 59)
+        cal.set(java.util.Calendar.MILLISECOND, 999)
+        return cal.timeInMillis
+    }
+
+    var hasDueDate by remember { mutableStateOf(existingInvoice?.hasDueDate ?: true) }
+    var pickedCustomDate by remember {
+        mutableLongStateOf(
+            if (existingInvoice != null && existingInvoice.dueDate > 0) getEndOfDay(existingInvoice.dueDate)
+            else getEndOfDay(System.currentTimeMillis() + (profile.defaultPaymentTermsDays.toLong() * 24 * 60 * 60 * 1000))
+        )
+    }
+
+    val initialMode = remember {
+        if (existingInvoice != null) {
+            if (!existingInvoice.hasDueDate) {
+                "NONE"
+            } else {
+                val dayCount = ((existingInvoice.dueDate - existingInvoice.issueDate) / (24L * 60 * 60 * 1000)).toInt()
+                when (dayCount) {
+                    0 -> "RECEIPT"
+                    7 -> "NET_7"
+                    14 -> "NET_14"
+                    30 -> "NET_30"
+                    else -> "CUSTOM"
+                }
+            }
+        } else {
+            when (profile.defaultPaymentTermsDays) {
+                0 -> "RECEIPT"
+                7 -> "NET_7"
+                14 -> "NET_14"
+                30 -> "NET_30"
+                else -> "NET_14"
+            }
+        }
+    }
+
+    var selectedDueMode by remember { mutableStateOf(initialMode) }
+
     var notes by remember { mutableStateOf(existingInvoice?.notes ?: "Thank you for your business!") }
     var paymentInstructions by remember { mutableStateOf(existingInvoice?.paymentInstructions ?: profile.paymentInstructions) }
     var status by remember { mutableStateOf(existingInvoice?.status ?: "Draft") }
@@ -146,7 +203,30 @@ fun InvoiceEditScreen(
                             }
 
                             val now = existingInvoice?.issueDate ?: System.currentTimeMillis()
-                            val dueDateCalc = now + (paymentTermsDays.toLong() * 24 * 60 * 60 * 1000)
+                            val finalDueDate = if (!hasDueDate) {
+                                0L
+                            } else {
+                                when (selectedDueMode) {
+                                    "RECEIPT" -> getEndOfDay(now)
+                                    "NET_7" -> getEndOfDay(now + 7L * 24 * 60 * 60 * 1000)
+                                    "NET_14" -> getEndOfDay(now + 14L * 24 * 60 * 60 * 1000)
+                                    "NET_30" -> getEndOfDay(now + 30L * 24 * 60 * 60 * 1000)
+                                    "CUSTOM" -> getEndOfDay(pickedCustomDate)
+                                    else -> getEndOfDay(now + 14L * 24 * 60 * 60 * 1000)
+                                }
+                            }
+
+                            val matchingClient = if (selectedClientId > 0) clients.find { it.id == selectedClientId } else null
+                            val finalAddress = clientAddress.trim().ifBlank { matchingClient?.address ?: "" }
+                            val finalSuburb = clientSuburb.trim().ifBlank { matchingClient?.suburb ?: "" }
+                            val finalCity = clientCity.trim().ifBlank { matchingClient?.city ?: "" }
+                            val finalPostalCode = clientPostalCode.trim().ifBlank { matchingClient?.postalCode ?: "" }
+                            val finalVatNo = clientVatNo.trim().ifBlank { matchingClient?.vatNo ?: "" }
+                            val finalRegNo = clientRegNo.trim().ifBlank { matchingClient?.regNo ?: "" }
+                            val finalCityStateZip = clientCityStateZip.trim().ifBlank {
+                                matchingClient?.fullAddress?.ifBlank { matchingClient.cityStateZip } ?: ""
+                            }
+                            val finalEmail2 = clientEmail2.trim().ifBlank { matchingClient?.invoiceEmail2 ?: "" }
 
                             val invoiceToSave = Invoice(
                                 id = existingInvoice?.id ?: 0L,
@@ -156,15 +236,21 @@ fun InvoiceEditScreen(
                                 inviteNumber = inviteNumber.trim(),
                                 quoteId = existingInvoice?.quoteId,
                                 clientId = selectedClientId,
-                                clientName = clientName.trim(),
-                                clientCompany = clientCompany.trim(),
-                                clientEmail = clientEmail.trim(),
-                                clientEmail2 = clientEmail2.trim(),
-                                clientPhone = clientPhone.trim(),
-                                clientAddress = clientAddress.trim(),
-                                clientCityStateZip = clientCityStateZip.trim(),
+                                clientName = clientName.trim().ifBlank { matchingClient?.name ?: "" },
+                                clientCompany = clientCompany.trim().ifBlank { matchingClient?.company ?: "" },
+                                clientEmail = clientEmail.trim().ifBlank { matchingClient?.effectiveInvoiceEmail ?: "" },
+                                clientEmail2 = finalEmail2,
+                                clientPhone = clientPhone.trim().ifBlank { matchingClient?.phone ?: "" },
+                                clientAddress = finalAddress,
+                                clientSuburb = finalSuburb,
+                                clientCity = finalCity,
+                                clientPostalCode = finalPostalCode,
+                                clientCityStateZip = finalCityStateZip,
+                                clientVatNo = finalVatNo,
+                                clientRegNo = finalRegNo,
                                 issueDate = now,
-                                dueDate = dueDateCalc,
+                                hasDueDate = hasDueDate,
+                                dueDate = finalDueDate,
                                 itemsJson = LineItemConverter.toJson(lineItems),
                                 subtotal = subtotal,
                                 total = total,
@@ -421,17 +507,87 @@ fun InvoiceEditScreen(
                     Spacer(Modifier.height(6.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        listOf(0 to "Due on Receipt", 7 to "Net 7", 14 to "Net 14", 30 to "Net 30").forEach { (days, label) ->
-                            FilterChip(
-                                selected = paymentTermsDays == days,
-                                onClick = { paymentTermsDays = days },
-                                label = { Text(label, fontSize = 12.sp) },
-                                modifier = Modifier.testTag("terms_chip_$days")
-                            )
-                        }
+                        FilterChip(
+                            selected = hasDueDate && selectedDueMode == "RECEIPT",
+                            onClick = {
+                                selectedDueMode = "RECEIPT"
+                                hasDueDate = true
+                            },
+                            label = { Text("Due on Receipt", fontSize = 12.sp) },
+                            modifier = Modifier.testTag("terms_chip_0")
+                        )
+                        FilterChip(
+                            selected = hasDueDate && selectedDueMode == "NET_7",
+                            onClick = {
+                                selectedDueMode = "NET_7"
+                                hasDueDate = true
+                            },
+                            label = { Text("Net 7", fontSize = 12.sp) },
+                            modifier = Modifier.testTag("terms_chip_7")
+                        )
+                        FilterChip(
+                            selected = hasDueDate && selectedDueMode == "NET_14",
+                            onClick = {
+                                selectedDueMode = "NET_14"
+                                hasDueDate = true
+                            },
+                            label = { Text("Net 14", fontSize = 12.sp) },
+                            modifier = Modifier.testTag("terms_chip_14")
+                        )
+                        FilterChip(
+                            selected = hasDueDate && selectedDueMode == "NET_30",
+                            onClick = {
+                                selectedDueMode = "NET_30"
+                                hasDueDate = true
+                            },
+                            label = { Text("Net 30", fontSize = 12.sp) },
+                            modifier = Modifier.testTag("terms_chip_30")
+                        )
+                        FilterChip(
+                            selected = hasDueDate && selectedDueMode == "CUSTOM",
+                            onClick = {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = pickedCustomDate }
+                                android.app.DatePickerDialog(
+                                    context,
+                                    { _, year, month, dayOfMonth ->
+                                        val chosenCal = java.util.Calendar.getInstance().apply {
+                                            set(year, month, dayOfMonth, 23, 59, 59)
+                                            set(java.util.Calendar.MILLISECOND, 999)
+                                        }
+                                        pickedCustomDate = chosenCal.timeInMillis
+                                        selectedDueMode = "CUSTOM"
+                                        hasDueDate = true
+                                    },
+                                    cal.get(java.util.Calendar.YEAR),
+                                    cal.get(java.util.Calendar.MONTH),
+                                    cal.get(java.util.Calendar.DAY_OF_MONTH)
+                                ).show()
+                            },
+                            label = {
+                                Text(
+                                    if (hasDueDate && selectedDueMode == "CUSTOM") "Due ${Formatters.formatDate(pickedCustomDate)}" else "Pick a date",
+                                    fontSize = 12.sp
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(14.dp))
+                            },
+                            modifier = Modifier.testTag("terms_chip_custom")
+                        )
+                        FilterChip(
+                            selected = !hasDueDate,
+                            onClick = {
+                                selectedDueMode = "NONE"
+                                hasDueDate = false
+                            },
+                            label = { Text("No due date", fontSize = 12.sp) },
+                            modifier = Modifier.testTag("terms_chip_none")
+                        )
                     }
                 }
             }
@@ -531,7 +687,12 @@ fun InvoiceEditScreen(
                 clientEmail2 = client.invoiceEmail2
                 clientPhone = client.phone
                 clientAddress = client.address
+                clientSuburb = client.suburb
+                clientCity = client.city
+                clientPostalCode = client.postalCode
                 clientCityStateZip = client.fullAddress.ifBlank { client.cityStateZip }
+                clientVatNo = client.vatNo
+                clientRegNo = client.regNo
                 showClientPicker = false
             },
             onAddNewClient = {
